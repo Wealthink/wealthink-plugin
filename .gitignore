@@ -3,6 +3,9 @@
 
 # Internal design doc — not published publicly
 wealthink-plugin/ARCHITECTURE.md
+
+# Local Claude Code guidance (per-developer, kept out of the repo)
+CLAUDE.md
 __pycache__/
 *.pyc
 .env
