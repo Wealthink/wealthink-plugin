@@ -1,0 +1,10 @@
+.DS_Store
+*.log
+
+# Internal design doc — not published publicly
+wealthink-plugin/ARCHITECTURE.md
+__pycache__/
+*.pyc
+.env
+.venv/
+node_modules/

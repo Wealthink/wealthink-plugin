@@ -1,0 +1,22 @@
+{
+  "name": "wealthink",
+  "description": "Official Wealthink marketplace — install the Wealthink plugin to run financial research from inside Claude.",
+  "owner": {
+    "name": "Wealthink",
+    "email": "support@thewealthink.com"
+  },
+  "plugins": [
+    {
+      "name": "wealthink",
+      "source": "./wealthink-plugin",
+      "description": "Run financial research on Wealthink from inside Claude — browse tracked market news, build and run qualitative + quantitative research modules, and generate and share multi-asset research reports through the Wealthink MCP connector.",
+      "version": "0.0.1",
+      "license": "MIT",
+      "homepage": "https://github.com/Wealthink/wealthink-plugin",
+      "author": {
+        "name": "Wealthink",
+        "email": "support@thewealthink.com"
+      }
+    }
+  ]
+}

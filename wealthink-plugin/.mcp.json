@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "wealthink": {
+      "type": "http",
+      "url": "https://api.thewealthink.com/mcp"
+    }
+  }
+}
