@@ -1,6 +1,6 @@
 ---
 name: fund-manager
-allowed-tools: mcp__plugin_wealthink_wealthink__*
+allowed-tools: mcp__plugin_wealthink_mcp__*
 description: >
   Set up and run fund-manager research on Wealthink — allocation and risk
   monitoring, mandate/compliance reporting, and client/board reporting packs. Use

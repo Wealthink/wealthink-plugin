@@ -10,7 +10,7 @@ This is a Code-only backstop that enforces what the `share-report` skill already
 requires in prose. In Cowork (where this hook may not run) the skill instruction
 is the guarantee — never let a public link depend on this hook alone.
 
-Scoped deliberately to Wealthink's `mcp__plugin_wealthink_wealthink__set_*visibility` tools (see
+Scoped deliberately to Wealthink's `mcp__plugin_wealthink_mcp__set_*visibility` tools (see
 hooks.json matcher) so it never fires on another connector's "publish" action.
 """
 import json

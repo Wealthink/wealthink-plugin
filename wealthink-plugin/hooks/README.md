@@ -8,12 +8,12 @@ run). See `ARCHITECTURE.md` §3 and §8.
 | Hook | Event | Matcher | Effect |
 |------|-------|---------|--------|
 | Connection reminder | `SessionStart` | — | Injects a non-blocking reminder to authenticate Wealthink (OAuth) and never invent IDs. Cannot false-positive on already-connected sessions. |
-| Publish gate | `PreToolUse` | `mcp__plugin_wealthink_wealthink__set_.*visibility` | Forces an explicit confirmation before making a report run **public**; allows **revoke** (back to private) through. |
-| Archive gate | `PreToolUse` | `mcp__plugin_wealthink_wealthink__archive_.*` | Forces an explicit confirmation before soft-deleting a module / template / config / event. |
+| Publish gate | `PreToolUse` | `mcp__plugin_wealthink_mcp__set_.*visibility` | Forces an explicit confirmation before making a report run **public**; allows **revoke** (back to private) through. |
+| Archive gate | `PreToolUse` | `mcp__plugin_wealthink_mcp__archive_.*` | Forces an explicit confirmation before soft-deleting a module / template / config / event. |
 
 ## Scope discipline
 
-Matchers are deliberately scoped to `mcp__plugin_wealthink_wealthink__*` tool
+Matchers are deliberately scoped to `mcp__plugin_wealthink_mcp__*` tool
 names so the gates fire **only** on Wealthink calls — never on a CRM's "publish
 campaign" or a mail connector's "delete". The prefix follows the plugin-bundled
 MCP naming format `mcp__plugin_<plugin-name>_<server-name>__<tool>`, where this

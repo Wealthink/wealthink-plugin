@@ -1,6 +1,6 @@
 ---
 name: understand-system
-allowed-tools: mcp__plugin_wealthink_wealthink__*
+allowed-tools: mcp__plugin_wealthink_mcp__*
 description: >
   Understand a customer's existing research system — a PDF/PPT report, a code
   snippet, a spreadsheet, or a pasted chat blob — and map it onto Wealthink

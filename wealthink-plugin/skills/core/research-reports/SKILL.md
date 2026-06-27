@@ -1,6 +1,6 @@
 ---
 name: research-reports
-allowed-tools: mcp__plugin_wealthink_wealthink__*
+allowed-tools: mcp__plugin_wealthink_mcp__*
 description: >
   Build, run, and fetch Wealthink research report templates — a template bundles
   several qualitative and quantitative modules into one multi-section report that

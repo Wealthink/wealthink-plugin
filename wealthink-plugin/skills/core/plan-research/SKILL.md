@@ -1,6 +1,6 @@
 ---
 name: plan-research
-allowed-tools: mcp__plugin_wealthink_wealthink__*
+allowed-tools: mcp__plugin_wealthink_mcp__*
 description: >
   Plan a Wealthink research report before building it — capture the user's
   intent, check which data sources and tracked news already cover it, find the

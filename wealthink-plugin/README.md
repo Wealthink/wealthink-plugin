@@ -160,7 +160,7 @@ Deterministic enforcement of guardrails that the skills already require in prose
 - **Connection reminder** — a non-blocking reminder at session start to authenticate (OAuth) and never invent IDs.
 
 See `hooks/README.md`. The matchers assume the bundled connector is named
-`wealthink` (tool prefix `mcp__plugin_wealthink_wealthink__`).
+`wealthink` (tool prefix `mcp__plugin_wealthink_mcp__`).
 
 ### Commands (Claude Code)
 

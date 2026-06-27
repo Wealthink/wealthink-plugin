@@ -9,7 +9,7 @@ This is a Code-only backstop that enforces what the build/manage skills already
 require in prose. In Cowork (where this hook may not run) the skill instruction
 is the guarantee.
 
-Scoped to Wealthink's `mcp__plugin_wealthink_wealthink__archive_*` tools (see hooks.json matcher)
+Scoped to Wealthink's `mcp__plugin_wealthink_mcp__archive_*` tools (see hooks.json matcher)
 so it never fires on another connector's "delete"/"archive" action.
 """
 import json

@@ -1,6 +1,6 @@
 ---
 name: share-report
-allowed-tools: mcp__plugin_wealthink_wealthink__*
+allowed-tools: mcp__plugin_wealthink_mcp__*
 description: >
   Publish a finished Wealthink report run to a public, login-free link to share
   with a client, or revoke that access — and read a public run. Use when the user

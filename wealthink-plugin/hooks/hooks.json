@@ -12,7 +12,7 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "mcp__plugin_wealthink_wealthink__set_.*visibility",
+        "matcher": "mcp__plugin_wealthink_mcp__set_.*visibility",
         "hooks": [
           {
             "type": "command",
@@ -21,7 +21,7 @@
         ]
       },
       {
-        "matcher": "mcp__plugin_wealthink_wealthink__archive_.*",
+        "matcher": "mcp__plugin_wealthink_mcp__archive_.*",
         "hooks": [
           {
             "type": "command",

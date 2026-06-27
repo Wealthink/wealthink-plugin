@@ -1,6 +1,6 @@
 ---
 name: public-markets
-allowed-tools: mcp__plugin_wealthink_wealthink__*
+allowed-tools: mcp__plugin_wealthink_mcp__*
 description: >
   Set up and run public-markets / equity research on Wealthink — stock and sector
   coverage, morning notes and daily wraps, earnings previews and reviews, and

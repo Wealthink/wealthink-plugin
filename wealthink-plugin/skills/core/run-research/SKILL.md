@@ -1,6 +1,6 @@
 ---
 name: run-research
-allowed-tools: mcp__plugin_wealthink_wealthink__*
+allowed-tools: mcp__plugin_wealthink_mcp__*
 description: >
   Run a Wealthink research module and present the result — either a qualitative
   module (LLM analysis like a SWOT, market summary, or news digest) or a

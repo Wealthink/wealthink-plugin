@@ -1,6 +1,6 @@
 ---
 name: build-qual-module
-allowed-tools: mcp__plugin_wealthink_wealthink__*
+allowed-tools: mcp__plugin_wealthink_mcp__*
 description: >
   Create, refine, or archive a qualitative research module on Wealthink — an
   LLM-driven analysis (SWOT, market summary, news digest, policy-impact read,

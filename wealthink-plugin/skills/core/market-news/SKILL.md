@@ -1,6 +1,6 @@
 ---
 name: market-news
-allowed-tools: mcp__plugin_wealthink_wealthink__*
+allowed-tools: mcp__plugin_wealthink_mcp__*
 description: >
   Browse, filter, and summarise the market news and events Wealthink tracks for
   the user's workspace — across commodities, macro, policy, currencies, and

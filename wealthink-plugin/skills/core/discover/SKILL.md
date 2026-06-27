@@ -1,6 +1,6 @@
 ---
 name: discover
-allowed-tools: mcp__plugin_wealthink_wealthink__*
+allowed-tools: mcp__plugin_wealthink_mcp__*
 description: >
   Find the user's Wealthink resources and their IDs — research modules
   (qualitative + quantitative), report templates, tags, data sources, available

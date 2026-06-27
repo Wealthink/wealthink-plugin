@@ -1,6 +1,6 @@
 ---
 name: generate-layout
-allowed-tools: mcp__plugin_wealthink_wealthink__*
+allowed-tools: mcp__plugin_wealthink_mcp__*
 description: >
   Generate the visual layout of a Wealthink report/template as a frontend-rendered
   design — write a self-contained TypeScript/React component, gzip+base64-encode it,

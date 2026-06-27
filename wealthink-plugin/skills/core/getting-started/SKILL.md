@@ -1,6 +1,6 @@
 ---
 name: getting-started
-allowed-tools: mcp__plugin_wealthink_wealthink__*
+allowed-tools: mcp__plugin_wealthink_mcp__*
 description: >
   Connect to Wealthink, sign in, and orient a new user in their workspace. Use
   this at the start of a session, when the user is new to Wealthink, when a tool

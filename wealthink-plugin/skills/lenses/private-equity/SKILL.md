@@ -1,6 +1,6 @@
 ---
 name: private-equity
-allowed-tools: mcp__plugin_wealthink_wealthink__*
+allowed-tools: mcp__plugin_wealthink_mcp__*
 description: >
   Set up and run private-equity research on Wealthink — portfolio-company
   monitoring, deal/sector screens, and LP reporting packs. Use when the user talks

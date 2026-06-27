@@ -1,6 +1,6 @@
 ---
 name: build-quant-chart
-allowed-tools: mcp__plugin_wealthink_wealthink__*
+allowed-tools: mcp__plugin_wealthink_mcp__*
 description: >
   Create, refine, or archive a quantitative chart module on Wealthink — a
   configured chart over market/derivatives data, such as an MCX commodity futures
