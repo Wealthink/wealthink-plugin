@@ -1,6 +1,8 @@
 ---
 name: plan-research
-allowed-tools: mcp__plugin_wealthink_mcp__*
+allowed-tools:
+  - mcp__plugin_wealthink_mcp__get_*
+  - mcp__plugin_wealthink_mcp__list_*
 description: >
   Plan a Wealthink research report before building it — capture the user's
   intent, check which data sources and tracked news already cover it, find the
@@ -36,6 +38,8 @@ Never plan in a vacuum — see what's already there to reuse (via `discover`):
 
 - `list_all_modules` — existing modules that may already cover part of the goal.
 - `list_templates` — existing report templates to extend rather than duplicate.
+  Pass `page_size: 5–10` or `q=<search>` to keep it tight; leave `include_layout`
+  off, since layouts aren't part of planning.
 - `list_tags` — which topics/instruments are already tracked as event tags.
 - `list_data_sources` / `list_qual_data_sources` — the sources available to draw on.
 - `list_events` (small limit, filtered by a candidate tag) — confirm the tracked

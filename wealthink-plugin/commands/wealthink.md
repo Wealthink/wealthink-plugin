@@ -16,8 +16,9 @@ Handle this Wealthink request using the Wealthink MCP connector:
 
 1. **Connection check.** If a tool reports the connector isn't authenticated
    ("not connected" / 401), use `getting-started` to have the user connect
-   Wealthink via OAuth (`/mcp` → **wealthink** → **Authenticate**) before
-   retrying. Never ask for an email or password.
+   Wealthink via OAuth — in Claude Code that is `/mcp` → the Wealthink server
+   (listed as **`plugin:wealthink:mcp`**) → **Authenticate**. Never ask for an
+   email or password.
 2. **Classify the intent** and route to the matching skill:
    - *What's happening / news on X* → `market-news` (`list_events`)
    - *Plan / set up new research, "what should I build?"* → `plan-research`

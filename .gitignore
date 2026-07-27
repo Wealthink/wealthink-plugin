@@ -1,11 +1,14 @@
 .DS_Store
 *.log
 
-# Internal design doc — not published publicly
-wealthink-plugin/ARCHITECTURE.md
-
-# Local Claude Code guidance (per-developer, kept out of the repo)
+# Local Claude Code guidance and settings (per-developer, kept out of the repo)
 CLAUDE.md
+.claude/settings.local.json
+
+# Internal handoff spec for the connector team — names server-side paths and
+# unreleased fixes; shared internally, not published with the plugin.
+docs/mcp-server-requirements.md
+
 __pycache__/
 *.pyc
 .env

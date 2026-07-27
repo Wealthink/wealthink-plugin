@@ -1,5 +1,12 @@
 ---
 name: wealthink-researcher
+tools:
+  - mcp__plugin_wealthink_mcp__list_*
+  - mcp__plugin_wealthink_mcp__get_*
+  - mcp__plugin_wealthink_mcp__run_module
+  - mcp__plugin_wealthink_mcp__run_quant_chart
+  - mcp__plugin_wealthink_mcp__run_template
+  - Agent(output-digest)
 description: >
   Wealthink research analyst. Runs the full research loop through the Wealthink
   MCP connector — browse the tracked market news, run qualitative and

@@ -2,6 +2,7 @@
   "hooks": {
     "SessionStart": [
       {
+        "matcher": "startup|resume",
         "hooks": [
           {
             "type": "command",
@@ -21,7 +22,7 @@
         ]
       },
       {
-        "matcher": "mcp__plugin_wealthink_mcp__archive_.*",
+        "matcher": "mcp__plugin_wealthink_mcp__(archive|delete)_.*",
         "hooks": [
           {
             "type": "command",

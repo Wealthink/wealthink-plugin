@@ -1,6 +1,16 @@
 ---
 name: run-research
-allowed-tools: mcp__plugin_wealthink_mcp__*
+allowed-tools:
+  - mcp__plugin_wealthink_mcp__get_*
+  - mcp__plugin_wealthink_mcp__list_*
+  - mcp__plugin_wealthink_mcp__run_module
+  - mcp__plugin_wealthink_mcp__run_qual_stream
+  - mcp__plugin_wealthink_mcp__run_quant_chart
+  - mcp__plugin_wealthink_mcp__run_quant_module
+  - mcp__plugin_wealthink_mcp__test_run_qual
+  - mcp__plugin_wealthink_mcp__test_run_quant
+  - Agent(output-digest)
+  - Agent(run-verify)
 description: >
   Run a Wealthink research module and present the result — either a qualitative
   module (LLM analysis like a SWOT, market summary, or news digest) or a
@@ -18,9 +28,15 @@ Prefer those — they save you from managing a polling loop.
 ## Step 1 — Identify the module
 
 You need the module's ID and its type (qualitative vs quantitative). If the user
-named it ("run my gold SWOT"), resolve the ID via `discover`
-(`list_qual_modules` / `list_quant_configs` / `list_all_modules`). If several
+named it ("run my gold SWOT"), resolve the ID via `discover` —
+`list_module_options` is the cheapest lookup (id + name across both types), with
+`list_qual_modules` / `list_quant_configs` when you need more detail. If several
 match, ask which one.
+
+**Run an unsaved spec instead?** If the user is describing something that doesn't
+exist yet rather than naming a module they have, don't create one to run it —
+`test_run_qual` / `test_run_quant` execute a spec without saving. See
+`build-qual-module` / `build-quant-chart`.
 
 ## Step 2 — Run it (one call, waits for the result)
 
@@ -49,6 +65,26 @@ Statuses flow `pending → running → completed | failed`. Treat only `complete
 and `failed` as terminal. If a wrapper times out, the job is still running
 server-side — give the user the `run_id` and offer to check again with
 `get_qual_run_status`.
+
+**Size the response to the question.** These calls take `data`:
+`data="schema"` returns a JSON Schema of `result` instead of the rows,
+`data="both"` gives you both, `data="full"` the raw data. Checking *whether* a run
+produced output, or *what shape* it produced, does not need the rows — and a quant
+result can be thousands of them. Use `full` when the user is reasoning over the
+numbers, `schema` when you are reasoning over the structure.
+
+## Runs the user didn't start
+
+Modules can carry a `run_frequency` cron, and those schedules **now execute** — so
+a module may have recent results nobody triggered by hand. Two consequences:
+
+- When a result's timing looks unexplained, check the module's `run_frequency`
+  before treating it as a mystery.
+- A schedule can be **auto-paused** after repeated credential failures. It looks
+  live except for `schedule_status`, `schedule_paused_reason` and
+  `schedule_paused_at`. If a user says "my daily report stopped arriving", read
+  those three fields first — the usual cause is a data-source credential that
+  needs re-adding in the Wealthink app, which is a human action.
 
 ## Step 4 — Present the result
 

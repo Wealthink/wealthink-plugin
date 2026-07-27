@@ -1,7 +1,6 @@
 # wealthink-plugin
 
-Plugin to operate the Wealthink platform via its MCP server in your personal AI
-agent — Claude, ChatGPT, OpenCode, and more.
+Operate the Wealthink platform from your AI agent, over MCP.
 
 **Wealthink for agents** turns natural-language requests into real Wealthink
 research: browse the market news Wealthink tracks for you, build and run
@@ -15,7 +14,18 @@ research reports.
 /plugin install wealthink@wealthink
 ```
 
-Then connect: `/mcp` → **wealthink** → **Authenticate** (OAuth — no token to copy).
+Then connect: run `/mcp`, pick the Wealthink server the plugin registered — it is
+listed as **`plugin:wealthink:mcp`** — and choose **Authenticate**. OAuth opens in
+your browser; there is no token to copy.
+
+Cowork and claude.ai install it the same way, from **Customize → Plugins**.
+
+## Other agents
+
+Any MCP-capable client — Cursor, VS Code, Codex, OpenCode, ChatGPT custom
+connectors — can connect to the Wealthink MCP server directly and use its tools.
+Config snippets, and what you give up outside the plugin, are in
+[`docs/connect.md`](./docs/connect.md).
 
 Full documentation, skills, agents, and usage examples live in
 [`wealthink-plugin/README.md`](./wealthink-plugin/README.md).

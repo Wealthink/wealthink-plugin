@@ -1,6 +1,7 @@
 ---
 name: getting-started
-allowed-tools: mcp__plugin_wealthink_mcp__*
+allowed-tools:
+  - mcp__plugin_wealthink_mcp__list_*
 description: >
   Connect to Wealthink, sign in, and orient a new user in their workspace. Use
   this at the start of a session, when the user is new to Wealthink, when a tool
@@ -24,24 +25,35 @@ The Wealthink connector authenticates with **OAuth** — there is no token to co
 and no password to type into the chat. Authentication happens once in the browser
 and is cached.
 
-**First-time connect:**
-- **Claude Code** — run `/mcp`, select **wealthink**, and choose **Authenticate**.
-  A browser window opens for Wealthink sign-in/consent; approve it. Claude Code
-  caches the token in your system keychain and refreshes it automatically, so you
-  won't be asked again on this machine.
-- **claude.ai (chat / Cowork)** — authorise the **Wealthink** connector under
-  **Settings → Connectors**; the OAuth consent opens in a browser tab.
+**First-time connect** — the user authorises the Wealthink connector in whatever
+client they are using. Point them at their client's connector/MCP settings; the
+exact path differs per client, and
+<https://github.com/Wealthink/wealthink-plugin/blob/main/docs/connect.md> covers
+each one:
+
+- **Claude Code** — run `/mcp`, pick the Wealthink server (the bundled one is
+  listed as **`plugin:wealthink:mcp`**), and choose **Authenticate**. A browser
+  window opens for Wealthink sign-in/consent; approve it. The token is cached in
+  the system keychain and refreshed automatically, so this is a one-time step per
+  machine. `claude mcp login plugin:wealthink:mcp` does the same from a shell.
+- **Cowork / claude.ai / Claude Desktop** — install the Wealthink plugin from
+  **Customize → Plugins**, or authorise the **Wealthink** connector under
+  **Settings → Connectors**. The same OAuth consent opens in a browser tab.
+- **Any other MCP client** — authorise the Wealthink server in that client's MCP
+  settings. Note that outside the plugin they get the tools but none of these
+  skills or the safety hooks, so confirm outward actions extra carefully.
 
 **Confirm you're connected** before doing real work: call a lightweight read tool
 such as `list_all_modules`. If it returns data (even an empty list), you're
 connected and can continue to Step 2.
 
 **If a tool reports "not connected" / "not authenticated" / 401:**
-1. Re-run the connect step above (`/mcp` → **wealthink** → **Authenticate**, or
-   **Settings → Connectors** on claude.ai).
-2. If **wealthink** isn't listed in `/mcp` at all, the plugin's MCP server may not
-   be enabled — check `/plugin` shows **wealthink** installed and enabled, then
-   retry `/mcp`.
+1. Re-run the connect step above for the user's client.
+2. If no Wealthink server appears in the client's MCP list at all, the connector
+   isn't registered. On Claude Code, check `/plugin` shows **wealthink** installed
+   and enabled, then retry `/mcp`. Do not diagnose this from the server's label —
+   the bundled server is named after the plugin (`plugin:wealthink:mcp`), not
+   `wealthink`.
 3. Retry the read tool. Never ask the user for an email or password — Wealthink
    never authenticates through the chat.
 
@@ -49,8 +61,10 @@ connected and can continue to Step 2.
 
 Run a few read-only discovery tools in parallel and summarise the result:
 
-- `list_all_modules` — qualitative + quantitative research modules they already have
-- `list_templates` — research report templates
+- `list_module_options` — the cheapest inventory: id + name for every qualitative
+  and quantitative module in one unpaginated call
+- `list_templates` — research report templates. Pass `page_size: 5` and don't pass
+  `include_layout` — layouts are excluded by default and you don't need them here.
 - `list_events` (with a small limit, e.g. 10) — recent market news Wealthink is tracking for them
 - `list_tags` — the topics/instruments their workspace is organised around
 
@@ -75,13 +89,20 @@ Only list sections that have content. Keep it scannable.
 
 | You want to… | Skill to use |
 |--------------|--------------|
+| Find what you have, and its ID | `discover` |
 | See what's happening in the market | `market-news`, then `run-research` |
+| Work out what to build in the first place | `plan-research` |
+| Replicate a report/process you already produce | `understand-system` |
 | Run an analysis and read the result | `run-research` |
 | Create/tune an analysis question | `build-qual-module` |
-| Create/tune a chart (e.g. MCX futures) | `build-quant-chart` |
+| Create/tune a chart (e.g. a futures candlestick) | `build-quant-chart` |
 | Produce a full multi-section report | `research-reports` |
 | Share a report with a client | `share-report` |
 | Lay out a report visually | `generate-layout` |
+
+If the user's role is clear from the conversation (equity desk, PE, VC, fund
+manager), the matching **lens** skill — `public-markets`, `private-equity`,
+`venture`, `fund-manager` — maps their vocabulary onto these and hands off.
 
 ## Good to know
 

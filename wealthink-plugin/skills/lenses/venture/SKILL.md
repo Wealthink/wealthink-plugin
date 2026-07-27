@@ -1,6 +1,8 @@
 ---
 name: venture
-allowed-tools: mcp__plugin_wealthink_mcp__*
+allowed-tools:
+  - mcp__plugin_wealthink_mcp__get_*
+  - mcp__plugin_wealthink_mcp__list_*
 description: >
   Set up and run venture-capital research on Wealthink — deal-pipeline tracking,
   investment-thesis monitoring, and portfolio-update reports. Use when the user

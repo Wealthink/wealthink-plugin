@@ -1,5 +1,11 @@
 ---
 name: pe-research
+tools:
+  - mcp__plugin_wealthink_mcp__list_*
+  - mcp__plugin_wealthink_mcp__get_*
+  - Agent(module-builder)
+  - Agent(run-verify)
+  - Agent(output-digest)
 description: >
   Private-equity research orchestrator for Wealthink. Runs the PE loop in a deal
   professional's voice — portfolio-company monitoring, sector/deal screens, and LP

@@ -1,8 +1,12 @@
 # Frontend Layout Format — Wealthink `custom_layout`
 
 This is the exact contract the Wealthink frontend recognises and renders. The
-`generate-layout` skill writes a component to this spec, base64-encodes it, and
-stores it in the template's `custom_layout`. **Follow it precisely.**
+`generate-layout` skill writes a component to this spec, **gzip-compresses then
+base64-encodes** it (always via the bundled `scripts/b64.py`), and stores the
+result in the template's `custom_layout`. **Follow it precisely.**
+
+> The field never holds raw or plain-base64 TSX — a plain-base64 payload will not
+> render. A correctly encoded value base64-decodes to the gzip magic `H4sI…`.
 
 ## Goal
 
@@ -33,11 +37,12 @@ humans.
   beyond React; inline any helper logic.
 
 > **Data contract / prop name:** current templates pass the payload as
-> `testResult` with a `.result` key. The first instruction example also shows
-> `{ data }` — these are historically inconsistent. **Mirror the prop name used by
-> the firm's existing decoded `custom_layout` templates** (decode one and check);
-> default to `{ testResult }` + `testResult.result` if there's no reference. Either
-> way, read everything from `result` dynamically.
+> `testResult` with a `.result` key, as in the example above. Some older templates
+> in the wild use `{ data }` instead — the two are historically inconsistent.
+> **Mirror the prop name used by the firm's existing decoded `custom_layout`
+> templates** (decode one and check); default to `{ testResult }` +
+> `testResult.result` if there's no reference. Either way, read everything from
+> `result` dynamically.
 
 ## Mobile responsiveness requirements (inline-style components)
 

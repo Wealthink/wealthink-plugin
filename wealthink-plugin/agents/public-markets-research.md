@@ -1,5 +1,11 @@
 ---
 name: public-markets-research
+tools:
+  - mcp__plugin_wealthink_mcp__list_*
+  - mcp__plugin_wealthink_mcp__get_*
+  - Agent(module-builder)
+  - Agent(run-verify)
+  - Agent(output-digest)
 description: >
   Equity-desk research orchestrator for Wealthink. Runs the public-markets loop in
   an analyst's voice — coverage, morning notes, earnings work, sector rotation —

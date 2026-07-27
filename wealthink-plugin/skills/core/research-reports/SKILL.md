@@ -1,12 +1,19 @@
 ---
 name: research-reports
-allowed-tools: mcp__plugin_wealthink_mcp__*
+allowed-tools:
+  - mcp__plugin_wealthink_mcp__get_*
+  - mcp__plugin_wealthink_mcp__list_*
+  - mcp__plugin_wealthink_mcp__create_template
+  - mcp__plugin_wealthink_mcp__run_template
+  - mcp__plugin_wealthink_mcp__update_template
+  - Agent(output-digest)
 description: >
   Build, run, and fetch Wealthink research report templates — a template bundles
   several qualitative and quantitative modules into one multi-section report that
   can run on a schedule (e.g. a weekly multi-asset briefing). Use when the user
-  wants to create a report, change which modules/sections it contains or how
-  often it runs, generate a report now, or fetch a generated report.
+  says "build my weekly research report", "run my morning pack now", "add a
+  section to that report", "reorder the sections", "make it run daily", or
+  "show me last week's report".
 ---
 
 # Research Report Templates
@@ -18,8 +25,8 @@ e.g. "Weekly Macro + Commodity Briefing", "Daily Bullion Brief".
 
 ## Create a report template
 
-1. **Pick the modules** (via `discover`: `list_all_modules` / `list_qual_modules`
-   / `list_quant_configs`). Decide their order — **module order is the section
+1. **Pick the modules** (via `discover`: `list_module_options` is the cheapest way
+   to see everything available). Decide their order — **module order is the section
    order in the report.** A typical flow: a macro/news summary, then charts, then
    instrument SWOTs, then a conclusion.
 2. **Create it** with `create_template`:
@@ -27,7 +34,8 @@ e.g. "Weekly Macro + Commodity Briefing", "Daily Bullion Brief".
    - **module IDs** — ordered list of the modules to include.
    - **frequency** — `daily` | `weekly` | `monthly`.
    - optional **report title / objectives** and **active** flag.
-3. Read it back and confirm the section order with the user.
+3. Read it back with `get_template_by_id(id)` and confirm the section order with
+   the user.
 
 ## Run a report (and get it back)
 
@@ -43,20 +51,33 @@ default wait is 180s; raise `timeout_s` for big reports).
 
 ## Fetch a generated report
 
-- `list_template_reports(...)` — list generated report runs (find the run_id you
-  want).
-- `get_template_run_status(run_id)` — the run's status and stitched result.
+- **`list_template_reports(template_id=<id>)`** — the runs for one template.
+  `template_id` is **required**; there is no "all reports across all templates"
+  listing. The response is **metadata only** — `id`, `run_id`, `date`, `status`,
+  `is_public`, `public_link` — which is exactly what you want when hunting for a
+  `run_id`. Pass `show_result=true` only if you actually need the payloads inline.
+- **`get_template_report_by_run_id(template_id, run_id)`** — one historical run.
+- **`get_template_run_status(run_id)`** — a run's status and stitched result.
+
+**Control the payload with `data`** on any of the result-returning calls:
+
+| `data` | Returns | Use when |
+|---|---|---|
+| `schema` | a Draft-7 JSON Schema of `result` | you need the *shape* — which sections/fields exist, building or debugging a layout |
+| `both` | schema **and** values | you want structure plus a look at real numbers |
+| `full` | the raw rows | the user is reasoning over the data itself |
 
 Present it as a clean, sectioned research report — one section per module, in
 order. Render qual sections as headed markdown; for quant sections, describe the
 chart and key readings (don't paste raw Plotly JSON). Lead with the report title
 and run date.
 
-> **A full stitched report can be too big to hold or render.** When it is, spawn
-> an `output-digest` agent on the `run_id` — it absorbs the whole report and
-> returns a tight, sectioned summary (and names any section that failed), so the
-> raw payload never floods the main context. Pull the full text only for the one
-> section a user explicitly asks to see in full.
+> **A full stitched report can be too big to hold or render.** Reach for
+> `data="schema"` *first* — it often removes the problem outright. If you still
+> need the values, spawn an `output-digest` agent on the `run_id`: it absorbs the
+> whole report and returns a tight, sectioned summary (naming any section that
+> failed), so the raw payload never floods the main context. Pull full text only
+> for the one section a user explicitly asks to see.
 
 ## Refine a template
 
@@ -69,8 +90,14 @@ Change frequency, title/objectives, or active flag the same way.
 
 ## Retire a template
 
-`archive_template(template_id)` — soft-delete (recoverable). No hard-delete via
-the connector. Confirm first.
+`archive_template(template_id)` — soft-delete (recoverable), but the template
+disappears from active lists and its scheduled runs stop. **Always confirm with
+the user before archiving** — and in Claude Code the removal-gate hook enforces
+this by requiring an explicit confirmation on `archive_*` calls. The confirmation
+is the rule; the hook is the backstop, and it only runs in Claude Code.
+
+Archived runs already published to a client link keep serving — revoke those via
+`share-report` separately if that's the intent.
 
 ## Natural next steps
 
