@@ -188,6 +188,28 @@ do not fire — the skills' own confirmation rules are the guarantee there. See
 
 ---
 
+## Tool loading
+
+The connector is registered with **`alwaysLoad: true`**, so all its tool schemas
+load at session start instead of being discovered on demand.
+
+This is a trade-off, and it is deliberate. By default Claude Code defers MCP tool
+definitions and searches for them when needed — which is cheaper per session, but
+means every subagent re-discovers the same tools. Measured on a real session:
+**136 tool-search calls, with `run_quant_chart` re-selected 32 times.** Because
+those are turns and turn cost compounds, loading upfront wins for this connector.
+
+The cost: the schemas occupy context for the whole session, and startup blocks
+until the server connects (capped at 5s). If your sessions are short, or you run
+Wealthink alongside several other connectors, **remove the line** from
+`.mcp.json` — nothing else depends on it:
+
+```json
+{ "mcpServers": { "mcp": { "type": "http", "url": "https://api.thewealthink.com/mcp" } } }
+```
+
+Requires Claude Code v2.1.121 or later; earlier versions ignore the field.
+
 ## Fewer permission prompts
 
 Each skill pre-approves the tools it needs via `allowed-tools`, but **that grant
