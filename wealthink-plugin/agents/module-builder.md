@@ -11,7 +11,7 @@ maxTurns: 15
 description: >
   Build one already-approved Wealthink module from a complete spec — create it,
   test-run it once, and return a compact summary. Use as the parallel fan-out
-  worker in the approve-then-fan-out flow: the main thread approves N module
+  worker in the fan-out build flow: the main thread approves N module
   specs with the user, then spawns one module-builder per spec. Handles both
   qualitative modules and quantitative chart configs. Persona-agnostic.
 ---

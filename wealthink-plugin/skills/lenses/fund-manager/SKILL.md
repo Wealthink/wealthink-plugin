@@ -53,7 +53,7 @@ templates as demand appears, but keep it an adapter. This persona leans on
 ## How a request flows
 
 Map intent → if open-ended, `plan-research` → build any needed modules via the
-`build-*` skills (approve-then-fan-out) → assemble/run via `research-reports` →
+`build-*` skills (fan out the approved specs) → assemble/run via `research-reports` →
 lay out (`generate-layout`) → distribute (`share-report`, confirm before public).
 
 ## Composing with other connectors (defensive)

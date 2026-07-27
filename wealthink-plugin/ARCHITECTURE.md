@@ -79,47 +79,82 @@ Four consequences drive every decision below:
 > in the skill; the hook enforces it. A single MCP tool call (e.g. "list modules")
 > is **not** a skill — it's a step inside one.
 
-### The verify-one-then-fan-out pattern (the core orchestration shape)
+### The fan-out pattern, and the one condition that gates it
 
 For any "do N of these in parallel" flow (build N modules, run+verify N modules).
 
-> **Approval is not verification.** An earlier revision of this document called
-> this *approve-then-fan-out* and fanned out as soon as the user approved the
-> specs. That is wrong, and it was expensive: approval proves the user wants the
-> module, only a passing run proves the spec is *correct*. Sibling modules share
-> their classification and precision rules, so fanning out on unverified specs
-> pushes one wrong assumption into all N — and every later correction costs N
-> edits, N re-runs and N verifications. **Build one, verify it with the user, then
-> clone.** The extra round-trip is one run; the alternative is paying every
-> mistake N times.
+**Fan-out is the default.** A module build-and-run takes 2–4 minutes, so
+serialising N of them is a materially worse experience and usually buys nothing.
+Approval on the main thread, then one agent per item, concurrently.
+
+> **The gate is correlated failure, not scale.** Approval proves the user wants the
+> module; it does not prove the spec is *correct*. That distinction only matters
+> when the siblings share an assumption nothing has tested — a classification rule,
+> a precision, an endpoint mapping. Those fail *together*, so proving the rule once
+> prevents N wrong modules. Modules that fail *independently* gain nothing from a
+> checkpoint: building one tells you nothing about the others and costs a
+> round-trip for no information.
+>
+> So the rule is **not** "always build one first". It is:
+>
+> - **Fan out immediately** when the plan quotes field names, precision and
+>   classification rules from a **real payload** (§7, inspect-first) *and* each spec
+>   carries **written acceptance assertions**. This is the normal, fast path.
+> - **Prove one first only on first contact** — a data source nobody has run here
+>   yet, a new classification rule, a new shared output format. That is one
+>   round-trip **per source**, not per batch; once a rule has produced correct
+>   output, later batches against it fan out freely.
+>
+> **Prove with a test-run, not a create.** `test_run_qual` / `test_run_quant`
+> execute a spec without persisting it, so a wrong spec leaves nothing to archive.
+> For a large near-identical batch, fan out N *test-runs* in parallel, review them
+> together, then fan out N creates — two parallel waves, no serial step at all.
+>
+> **Qual needs the checkpoint more often than quant.** A payload inspection nearly
+> proves a quant spec, since endpoints, keys and precision are visible in the data.
+> It cannot prove what a `context` will make the LLM write; whether the expected
+> sections come back is only knowable from a run.
+>
+> *(History: an earlier revision of this document said "approve then fan out" with
+> no notion of correlated risk, and a later one over-corrected to "always build one
+> first". The first shipped one wrong assumption into every sibling; the second
+> taxed every well-planned batch with a round-trip it didn't need. The condition
+> above is the distinction both were missing.)*
 
 ```
-Main thread (skill)              Agents                        Main thread (skill)
-─────────────────────            ──────────────────            ───────────────────
+Main thread (skill)                    Agents                  Main thread (skill)
+─────────────────────                  ──────────────          ───────────────────
 gather intent / discover
-inspect ONE real payload
-  → derive field/precision/
-    classification rules
-match + propose specs
+inspect ONE real payload  ─────────────────────────────────►  rules are now grounded
+  → field / precision / classification rules
+match + propose specs, each with acceptance assertions
 ASK USER → approve specs
-BUILD ONE + RUN IT
-ASK USER → is this right?   ◄─── the checkpoint the flow exists for
-                                 (fix the spec here, once, not N times)
-                           ──►   spawn 1 agent per REMAINING item
-                                 (autonomous: do work,
-                                  return result, NO questions)
-                           ◄──   results returned
+        │
+        ├── first contact with this source/rule?
+        │      └─ yes → test_run ONE (no persist)
+        │               ASK USER → is this right?   ◄── fix the spec here, once
+        │
+        └── otherwise, or once proven ──►  spawn 1 agent PER ITEM, concurrently
+                                           (autonomous, no questions)
+                                    ◄──   results returned
 review results WITH user
   → anything wrong goes to module-fixer WITH an acceptance spec,
-    never back into module-builder
+    bounded and parallel — never back into module-builder
 ASK USER → approve outward action (publish / make public)
 execute outward action (gated by a hook in Code)
 ```
 
 Both Cowork and Code can fan out, so this is the default. If a harness can't
-spawn subagents, the same skill walks the remaining items **sequentially** inline
-after the checkpoint — identical tools, identical approvals, just no parallelism.
-The skill is authoritative; the agent is the scale path.
+spawn subagents, the same skill walks the items **sequentially** inline —
+identical tools, identical approvals, just no parallelism. The skill is
+authoritative; the agent is the scale path.
+
+**Being wrong is now bounded.** The measured disaster — 8.25 edits per module,
+66–80-turn agents — came from an *unbounded* repair loop with no definition of
+done. With `module-fixer` taking a written acceptance spec, capped at five cycles
+and running N-at-a-time, "fan out then fix" is a bounded concurrent job rather than
+an open-ended one. That is a large part of why fan-out can be the default: the cost
+of a wrong batch fell by an order of magnitude.
 
 **Build and repair are different jobs.** `module-builder` creates one module and
 stops; `module-fixer` repairs one existing module against a **written acceptance
@@ -333,7 +368,7 @@ digest · **[hook]** Code-enforced backstop (rule also in the skill).
 ### UC1 — Create / update section modules  *(originally "Agent, parallel")*
 
 Reclassified: **interactive orchestration skill + parallel `module-builder`
-fan-out** (verify-one-then-fan-out). Not a single agent — it is full of approvals.
+fan-out**, gated on correlated risk. Not a single agent — it is full of approvals.
 
 1. Search/filter similar modules — **[step]** `discover` (`list_*_modules`)
 2. Check for a match — inline reasoning (no agent)
@@ -522,7 +557,7 @@ future knob, not a blocker today.
    every other flow that returns big output.
 4. **`plan-research` (UC3)** and **`understand-system` (UC4)** core skills — the
    front of the funnel.
-5. **`module-builder` + `module-fixer` agents (UC1)** + wire verify-one-then-fan-out into
+5. **`module-builder` + `module-fixer` agents (UC1)** + wire the gated fan-out into
    `build-qual-module` / `build-quant-chart`.
 6. **`run-verify` agent (UC2)** + wire into `run-research` / `share-report`.
 7. **Confirm `share-report` (UC5)** and **`generate-layout` (UC6)** match the gated

@@ -36,9 +36,10 @@ Handle this Wealthink request using the Wealthink MCP connector:
    `run_template`) so you return a finished result. If one times out, use the
    returned `run_id` with `get_qual_run_status` / `get_template_run_status`.
 5. **Scale & isolate when needed.**
-   - *Build N similar modules* → build **one** and verify it with the user first,
-     then fan out one `module-builder` per remaining approved spec. Never fan out
-     on unverified specs; a wrong assumption otherwise lands in every sibling.
+   - *Build N modules* → **fan out** one `module-builder` per approved spec,
+     concurrently; serialising costs minutes each. Prove one spec first (with
+     `test_run_*`, which persists nothing) only on **first contact** — a source
+     nobody has run here, or a new classification rule the siblings all share.
    - *Fix an existing module* → **`module-fixer`**, with a written acceptance spec
      (the assertions its output must satisfy). Never send repair work to
      `module-builder` — it creates once and stops by design.

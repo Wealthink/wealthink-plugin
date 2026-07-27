@@ -119,34 +119,46 @@ When you only need to know a result's *structure* — which data keys came back,
 what fields a layout could render — pass **`data="schema"`** to the result call
 instead of pulling thousands of OHLCV rows.
 
-## Building several charts at once — build one, verify, then clone
+## Building several charts at once — fan out, unless it's first contact
 
-When the user wants **several** similar chart modules (the UC1 flow, often
-arriving from `plan-research`), do **not** fan out N builders on N unverified
-specs. Approval proves the user wants the chart; only a rendered chart proves the
-spec is right — that the `data_key` matches an endpoint, that the expiry is live,
-that the values are plausible.
+**Fanning out is the default.** Building and rendering a config takes minutes, so
+serialising N of them is a bad experience. Spawn one **`module-builder`** agent per
+approved spec and let them run concurrently — hand each a complete spec with the
+data source, symbol and **fresh expiry codes** already resolved, since it cannot
+ask questions.
 
-1. **Draft the specs with the user on the main thread** (Steps 0–1). All questions
-   happen here.
-2. **Build ONE — the most representative — and render it.** `test_run_quant` if
-   anything is uncertain, then create and run. Show the user the real chart.
-3. **Confirm the pattern holds** before touching the siblings. Right instrument,
-   right endpoints, sensible last value and range, labels as expected. **Fix the
-   spec here, once**, while it is one config rather than N.
-4. **Now clone.** Spawn one **`module-builder`** agent per remaining approved
-   spec — hand each a complete spec with the data source, symbol and **fresh
-   expiry codes** already resolved, since it cannot ask questions.
-5. **Review the summaries with the user.** Anything `weak` / `blocked` /
-   `created_but_run_failed` goes to `module-fixer` with a written acceptance spec.
+The question is not *how many* configs, it's **whether they share an assumption
+nothing has tested yet.** Sibling configs built on one endpoint mapping or
+precision rule fail together; unrelated charts fail independently.
 
-If the harness can't fan out, build the remaining specs sequentially inline after
-step 3 — same tools, same checkpoint, no parallelism.
+**Fan out immediately** when the plan states field names, precision and
+classification rules taken from a **real payload** (`plan-research` Step 3.5) and
+each spec carries **written acceptance assertions**. That's the normal case.
 
-> **Why the checkpoint is not optional here.** Sibling configs share a
-> classification or precision rule. Revise that rule after cloning and you pay the
-> edit N times, plus N re-runs and N verifications. Revise it at step 3 and you pay
-> once.
+**Prove one first** only on first contact — a data source nobody has run here yet,
+a new endpoint mapping, a new classification rule. One round-trip **per source**,
+not per batch.
+
+> Quant specs are the cheaper case: endpoints, data keys and precision are all
+> visible in a payload, so Step 3.5 does most of the proving. If the source is
+> already known-good, go straight to fan-out.
+
+Use **`test_run_quant`** to prove a spec — it renders without creating a config, so
+a wrong spec leaves nothing behind. For a large near-identical batch, fan out N
+test-runs in parallel, review together, then fan out N creates: two parallel waves,
+no serial step, nothing wrong persisted.
+
+**Review the summaries with the user.** Anything `weak` / `blocked` /
+`created_but_run_failed` goes to `module-fixer` with a written acceptance spec —
+fixers run in parallel and are bounded at five cycles each.
+
+If the harness can't fan out, build the specs sequentially inline — same tools,
+same approvals, no parallelism.
+
+> **The one case where the checkpoint always pays.** Because duplicate endpoint
+> names collapse (see above), a multi-instrument comparison has to be N sibling
+> configs sharing one rule — the maximally correlated case. Prove that rule on one
+> config before cloning it across the set.
 
 ## Fixing a config that already exists
 

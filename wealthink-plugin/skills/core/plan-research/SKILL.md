@@ -106,9 +106,10 @@ Reuse (already in your workspace)
 Data rules (from a real payload — confirm these)
   • Weights arrive as 0.0432 → render as 4.32%
   • Cash rows are marked sector_name "Unspecified", not a null sector
-Build first, verify, then clone
+Create (fan out — rules proven against a real payload)
   • Qual:  "Rupee drivers digest"        → events, tag: rupee · source: news
-  • then:  "MCX Gold near-month 7D"      → candlestick, expiry from get_expiry_dates
+  • Quant: "MCX Gold near-month 7D"      → candlestick, expiry from get_expiry_dates
+  Acceptance: each returns its named sections, non-empty, for the current week
 Assemble
   • Template "Weekly Gold & Rupee Brief" → order: news summary → gold chart → SWOT → rupee digest
   • Frequency: weekly · client-facing → plan to share via share-report
@@ -129,10 +130,26 @@ Ask whether to proceed. On yes, **hand off** — do not create here:
 - Assemble the report → `research-reports`
 - (Later) lay it out → `generate-layout`; share it → `share-report`
 
-If the user approved several similar modules, say explicitly which one gets built
-**first** and verified before the rest are cloned — the build skills expect that
-order, and picking the most representative one is a planning judgement you are
-better placed to make than they are.
+### Tell the build skills whether this batch can fan out
+
+They build several modules **concurrently by default** — serialising them costs
+2–4 minutes each. What they need from you is the one judgement you're better placed
+to make: **does this batch rest on anything unproven?**
+
+State it explicitly in the handoff, in one line:
+
+- **"Fan out — rules proven."** The field/precision/classification rules in Step 3.5
+  came from a real payload, each spec has acceptance assertions, and the sources
+  have produced correct output here before. Build all of them at once.
+- **"First contact — prove `<spec name>` first."** The batch shares something
+  nothing has tested yet: a data source new to this workspace, a new classification
+  rule, or a new shared output format. Name the most representative spec to
+  test-run before the rest go out. This costs one round-trip **per source**, not
+  per batch.
+
+Nominate the representative spec yourself — you know which one exercises the risky
+rule. And prefer a test-run to a build for the check: `test_run_qual` /
+`test_run_quant` validate a spec without persisting anything.
 
 ## Notes
 

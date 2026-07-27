@@ -137,33 +137,67 @@ the user a summary — including the resolved tags and, if you set one, the sche
 and its `schedule_status`. Offer to run it once via `run-research` (`run_module`)
 so they can see real output before relying on it.
 
-## Building several modules at once — build one, verify, then clone
+## Building several modules at once — fan out, unless it's first contact
 
-When the user wants **several** similar modules (the UC1 flow, often arriving from
-`plan-research`), do **not** fan out N builders on N unverified specs. Approval
-proves the user wants the module; only a passing run proves the spec is right. Fan
-out before that and one wrong assumption propagates into every sibling, and each
-later correction has to be applied N times.
+**Fanning out is the default.** A module can take 2–4 minutes to build and run, so
+building N of them one after another is a bad experience and rarely buys anything.
+When the user wants several modules (the UC1 flow, usually arriving from
+`plan-research`), spawn one **`module-builder`** agent per approved spec and let
+them run concurrently.
 
-1. **On the main thread (this skill):** discover the building blocks and draft the
-   specs with the user. All questions happen here — an agent can't ask anything.
-2. **Build ONE — the most representative spec — and verify it.** `test_run_qual`
-   first if anything is uncertain (Step 2), then create and run it. Show the user
-   the real output.
-3. **Confirm the pattern holds.** Does the output actually answer the question?
-   Are the tags right, the sections the ones expected, the classification correct?
-   **This is the checkpoint the whole flow exists for.** Fix the spec here, once,
-   while it is one module and not N.
-4. **Now clone to the siblings.** With the first module proven, spawn one
-   **`module-builder`** agent per remaining approved spec — each creates its
-   module, test-runs it once, and returns a compact summary. Hand each a complete
-   spec with IDs and tags already resolved; it cannot come back with questions.
-5. **Review the summaries with the user.** Anything that came back `weak`,
-   `blocked` or `created_but_run_failed` goes to `module-fixer` with a written
-   acceptance spec — not back to `module-builder`.
+The question is not *how many* modules, it's **whether they share an assumption
+nothing has tested yet.** Siblings built on one classification or precision rule
+fail together, so proving that rule once prevents N wrong modules. Unrelated
+modules on different sources fail independently — building one first tells you
+nothing about the others and costs a round-trip for no information.
 
-If the harness can't spawn subagents, walk the remaining specs **sequentially**
-inline after step 3 — identical tools and approvals, just no parallelism.
+### Fan out immediately when both hold
+
+1. **The rules came from a real payload**, not an assumption — `plan-research`
+   Step 3.5 states the field names, precision and classification rules it actually
+   observed.
+2. **Each spec has written acceptance assertions** — what the output must satisfy.
+
+That is the normal case for a well-planned build, and it is the fast path.
+
+### Prove one first when it's first contact
+
+Spend the extra round-trip only when the batch rests on something unproven:
+
+- a **data source nobody has run yet** in this workspace;
+- a **new classification rule** (this field means cash, that one means debt);
+- a **new output format** the modules all share.
+
+That's first-contact risk, not scale risk — it costs one round-trip **per source**,
+not one per batch. Once a rule has produced correct output once, later batches
+against it fan out freely.
+
+**Qualitative modules earn this checkpoint more often than quant ones.** Inspecting
+a payload nearly proves a quant spec — endpoints, keys and precision are visible in
+the data. It cannot prove what a `context` will make the LLM *write*. Whether your
+sections come back, named as expected and on-topic, is only knowable from a run.
+
+### How to prove one without serialising
+
+Use **`test_run_qual`** (Step 2), not a create. It executes the spec without
+persisting anything, so a wrong spec leaves no module to archive.
+
+For a large homogeneous batch you don't have to serialise at all: **fan out N
+test-runs in parallel**, review them together, then fan out N creates. Two parallel
+waves, no sequential step, and nothing wrong is ever saved. Worth the extra run
+cost when N is large and the specs are near-identical.
+
+### Either way
+
+- Hand each agent a **complete** spec with IDs and tags already resolved — it
+  cannot come back with questions.
+- **Review the summaries with the user.** Anything `weak`, `blocked` or
+  `created_but_run_failed` goes to `module-fixer` with a written acceptance spec —
+  not back to `module-builder`. Fixers run in parallel too and are bounded at five
+  cycles, so a batch that needs correcting is a bounded, concurrent job rather than
+  an open-ended one.
+- If the harness can't spawn subagents, walk the specs **sequentially** inline —
+  identical tools and approvals, just no parallelism.
 
 ## Fixing a module that already exists
 
