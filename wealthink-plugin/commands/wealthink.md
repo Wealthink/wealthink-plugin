@@ -35,12 +35,18 @@ Handle this Wealthink request using the Wealthink MCP connector:
 4. **For runs**, prefer the blocking wrappers (`run_module`, `run_quant_chart`,
    `run_template`) so you return a finished result. If one times out, use the
    returned `run_id` with `get_qual_run_status` / `get_template_run_status`.
-5. **Scale & isolate when needed.** For "do N of these" (build/run several
-   modules), approve the specs with the user, then fan out one worker agent per
-   item (`module-builder` to build, `run-verify` to run+verify) — agents recommend,
-   the user approves outward actions. For any single response that's too big to
-   hold/render (a full run, a wide `list_events`, a stitched report), route it
-   through an `output-digest` agent.
+5. **Scale & isolate when needed.**
+   - *Build N similar modules* → build **one** and verify it with the user first,
+     then fan out one `module-builder` per remaining approved spec. Never fan out
+     on unverified specs; a wrong assumption otherwise lands in every sibling.
+   - *Fix an existing module* → **`module-fixer`**, with a written acceptance spec
+     (the assertions its output must satisfy). Never send repair work to
+     `module-builder` — it creates once and stops by design.
+   - *Run N modules* → one `run-verify` per module; agents recommend, the user
+     approves outward actions.
+   - *Any single response too big to hold/render* (a full run, a wide
+     `list_events`, a stitched report) → try `data="schema"` first, then route it
+     through an `output-digest` agent.
 6. **Present clearly** — an analyst-style summary, charts described in prose, no
    raw JSON dumps.
 

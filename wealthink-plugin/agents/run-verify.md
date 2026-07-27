@@ -5,6 +5,7 @@ tools:
   - mcp__plugin_wealthink_mcp__get_*
   - mcp__plugin_wealthink_mcp__run_module
   - mcp__plugin_wealthink_mcp__run_quant_chart
+maxTurns: 12
 description: >
   Run one Wealthink module and verify its output — return a verdict plus the best
   run_id, never the raw payload. Use as the parallel fan-out worker in the

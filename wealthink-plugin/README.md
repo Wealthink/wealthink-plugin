@@ -149,9 +149,14 @@ never references a lens. Adding a persona is additive — drop a folder under
 Workers run autonomously (they can't ask questions) and either fan out in parallel
 or digest a large payload so it never floods the conversation:
 
-- **`module-builder`** *(worker)* — builds one approved module spec, test-runs it, returns a summary. Fan out one per module.
+- **`module-builder`** *(worker)* — builds one approved module spec, test-runs it, returns a summary. **Creates only; never repairs.** Fan out one per module *after* the first has been verified.
+- **`module-fixer`** *(worker)* — repairs one existing module against a **written acceptance spec**, within five edit→run cycles, then returns `fixed` or `blocked` with the exact unmet assertion. **Repairs only; never creates.**
 - **`run-verify`** *(worker)* — runs one module, verifies the output, recommends a `run_id`. **Recommends, never publishes.**
 - **`output-digest`** *(worker)* — absorbs a big run/report/`list_events` payload and returns a tight summary.
+
+Every worker carries a `maxTurns` cap and a `tools:` allowlist, so its scope is
+enforced rather than merely described. A builder cannot edit; a fixer cannot
+create; none of them can publish or archive.
 
 Orchestrators run an end-to-end flow by delegating to the core skills:
 

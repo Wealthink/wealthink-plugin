@@ -137,26 +137,58 @@ the user a summary — including the resolved tags and, if you set one, the sche
 and its `schedule_status`. Offer to run it once via `run-research` (`run_module`)
 so they can see real output before relying on it.
 
-## Building several modules at once (approve-then-fan-out)
+## Building several modules at once — build one, verify, then clone
 
-When the user wants **several** modules built in one go (the UC1 flow, often
-arriving from `plan-research`), the shape is **approve on the main thread, then
-fan out**:
+When the user wants **several** similar modules (the UC1 flow, often arriving from
+`plan-research`), do **not** fan out N builders on N unverified specs. Approval
+proves the user wants the module; only a passing run proves the spec is right. Fan
+out before that and one wrong assumption propagates into every sibling, and each
+later correction has to be applied N times.
 
-1. **On the main thread (this skill):** discover building blocks, draft each
-   module's spec, and **get the user's approval of every spec** — including a
-   `test_run_qual` of any uncertain candidate (Step 2), which validates it without
-   creating anything. All questions happen here; an agent can't ask anything.
-2. **Fan out:** spawn one **`module-builder`** agent per *approved* spec. Each
-   agent autonomously creates its module, test-runs it once, and returns a compact
-   summary. Hand each agent a complete spec with IDs/expiries already resolved —
-   it cannot come back with questions.
-3. **Review the summaries with the user.** Re-run or refine any module that came
-   back `weak` / `blocked`.
+1. **On the main thread (this skill):** discover the building blocks and draft the
+   specs with the user. All questions happen here — an agent can't ask anything.
+2. **Build ONE — the most representative spec — and verify it.** `test_run_qual`
+   first if anything is uncertain (Step 2), then create and run it. Show the user
+   the real output.
+3. **Confirm the pattern holds.** Does the output actually answer the question?
+   Are the tags right, the sections the ones expected, the classification correct?
+   **This is the checkpoint the whole flow exists for.** Fix the spec here, once,
+   while it is one module and not N.
+4. **Now clone to the siblings.** With the first module proven, spawn one
+   **`module-builder`** agent per remaining approved spec — each creates its
+   module, test-runs it once, and returns a compact summary. Hand each a complete
+   spec with IDs and tags already resolved; it cannot come back with questions.
+5. **Review the summaries with the user.** Anything that came back `weak`,
+   `blocked` or `created_but_run_failed` goes to `module-fixer` with a written
+   acceptance spec — not back to `module-builder`.
 
-If the harness can't spawn subagents, walk the approved specs **sequentially**
-inline with the same `create_*` + test-run steps — identical tools and approvals,
-just no parallelism.
+If the harness can't spawn subagents, walk the remaining specs **sequentially**
+inline after step 3 — identical tools and approvals, just no parallelism.
+
+## Fixing a module that already exists
+
+**Repair is a different job from building, and it has its own agent.** If a module
+exists but its output is wrong — a mis-classified field, a missing section, the
+wrong precision — hand it to **`module-fixer`** with a **written acceptance spec**:
+the concrete assertions the output must satisfy.
+
+```
+Module: qm_abc…
+Acceptance spec:
+  1. Rows with sector_name "Unspecified" are classified as cash, not equity.
+  2. Weights render to two decimal places.
+  3. Every holding has a non-null weight.
+```
+
+The fixer edits and re-runs up to five times, then returns `fixed` or `blocked`
+with the exact unmet assertion. Never route repair to `module-builder`: it creates
+and stops by design, and reusing it as an open-ended repair loop is how a
+"re-spec this" task turns into 80 turns of edits with no definition of done.
+
+**Write the acceptance spec before spawning the fixer.** If you can't state what
+"correct" means, that is the thing to resolve with the user first — the fixer will
+return `blocked` immediately rather than guess, which is the right outcome but a
+wasted round-trip.
 
 ## Refine an existing module
 

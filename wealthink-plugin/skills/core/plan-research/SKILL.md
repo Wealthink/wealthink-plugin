@@ -3,6 +3,7 @@ name: plan-research
 allowed-tools:
   - mcp__plugin_wealthink_mcp__get_*
   - mcp__plugin_wealthink_mcp__list_*
+  - mcp__plugin_wealthink_mcp__test_run_quant
 description: >
   Plan a Wealthink research report before building it — capture the user's
   intent, check which data sources and tracked news already cover it, find the
@@ -57,6 +58,42 @@ Compare the goal against what exists. Decide, per piece of the goal:
   provisioned by Wealthink (app / account manager), **not** created through Claude
   (see `market-news`).
 
+## Step 3.5 — Look at one real payload per new source (step)
+
+**Before you write a single module's `context` or classification rule, fetch one
+real record from each data source the plan will use and read it.**
+
+This is the cheapest step in the skill and the one that saves the most. Rules
+written from an assumed schema get revised over and over once real data arrives —
+and because sibling modules share those rules, every revision is paid N times. One
+look up front replaces all of it.
+
+For each source the plan introduces:
+
+- `get_data_source_endpoints(source)` — what it actually exposes.
+- Pull **one** real record: a small `run_quant_chart` / `test_run_quant` against
+  the endpoint, or a narrow `list_events` for a news source. One row is enough;
+  you are reading the schema, not the data. Use `data="both"` — you need field
+  names *and* a couple of real values.
+
+Then derive, and write down for the user:
+
+- **Field names** — exactly as they come back, not as you'd expect them named.
+- **Precision and units** — is a weight `0.0432` or `4.32`? A price in rupees or
+  paise? Dates in what format?
+- **Classification rules, grounded in a real value.** This is where assumptions
+  cost most. If the plan needs "cash vs equity", find the field that actually marks
+  it (for a holdings payload that is often `sector_name: "Unspecified"`) rather
+  than inferring one from the fund's name or an absent field.
+- **Nulls and edge rows** — what does a missing value look like, and is it a real
+  category or an error?
+
+Carry those into Step 4 as *stated* rules, so the user can correct them while it is
+still a sentence in a plan rather than N modules that all encode the same mistake.
+
+> If a payload contradicts the plan, say so now. A plan built on the wrong field is
+> not a plan the user can approve meaningfully.
+
 ## Step 4 — Present the build plan (skill)
 
 Lay out a concrete, ordered plan the user can approve:
@@ -66,9 +103,12 @@ Plan: Weekly Gold & Rupee Client Brief (weekly, client-facing)
 
 Reuse (already in your workspace)
   • qm_abc…  Gold Market SWOT            → as-is
-Create (new modules)
+Data rules (from a real payload — confirm these)
+  • Weights arrive as 0.0432 → render as 4.32%
+  • Cash rows are marked sector_name "Unspecified", not a null sector
+Build first, verify, then clone
   • Qual:  "Rupee drivers digest"        → events, tag: rupee · source: news
-  • Quant: "MCX Gold near-month 7D"      → candlestick, expiry from get_expiry_dates
+  • then:  "MCX Gold near-month 7D"      → candlestick, expiry from get_expiry_dates
 Assemble
   • Template "Weekly Gold & Rupee Brief" → order: news summary → gold chart → SWOT → rupee digest
   • Frequency: weekly · client-facing → plan to share via share-report
@@ -89,13 +129,16 @@ Ask whether to proceed. On yes, **hand off** — do not create here:
 - Assemble the report → `research-reports`
 - (Later) lay it out → `generate-layout`; share it → `share-report`
 
-If the user approved several modules at once, the build step can fan them out in
-parallel (one `module-builder` agent per approved spec) — see `build-qual-module`.
+If the user approved several similar modules, say explicitly which one gets built
+**first** and verified before the rest are cloned — the build skills expect that
+order, and picking the most representative one is a planning judgement you are
+better placed to make than they are.
 
 ## Notes
 
 - This skill only reads and reasons; the confirm-before-create gate lives in the
-  build skills. Don't create tags, sources, or modules here.
+  build skills. Don't create tags, sources, or modules here. Reading one real
+  payload (Step 3.5) is a read, and it is the exception that pays for itself.
 - `plan_required` / 402 on a read → relay it plainly and plan around what the
   workspace can access.
 - Everything is scoped to the user's workspace — never imply cross-org data.

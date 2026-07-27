@@ -77,6 +77,23 @@ charts:     table:bhavcopy:Silver Price Table
             candlestick:ohlc:Silver OHLC (near month)
 ```
 
+> **⚠ Endpoint names must be unique — duplicates collapse silently.** The config
+> stores endpoints as a map keyed by name, so if you send two entries with the same
+> endpoint name, **only the last one survives. No error is raised.** You find out on
+> read-back, or worse, from a chart that quietly renders one instrument's data.
+>
+> - **Always read the config back after create/update** and check the endpoint list
+>   is the one you sent.
+> - **One instrument per endpoint entry, today.** A comparison across several
+>   instruments (three funds, three expiries) therefore needs **sibling configs**,
+>   one per instrument — not one config with repeated endpoint names.
+>
+> That sibling-config workaround is a current limitation, not the intended design.
+> Until the connector accepts an array of instruments per endpoint, budget for it:
+> a 3-fund comparison is 3 configs, and every later rule change costs 3 edits and
+> 3 re-runs. It is also the strongest reason to **verify one before cloning** (see
+> below).
+
 ## Step 2 — Render before you save
 
 `test_run_quant` renders a spec **without creating a config**. Use it whenever the
@@ -102,18 +119,58 @@ When you only need to know a result's *structure* — which data keys came back,
 what fields a layout could render — pass **`data="schema"`** to the result call
 instead of pulling thousands of OHLCV rows.
 
-## Building several charts at once (approve-then-fan-out)
+## Building several charts at once — build one, verify, then clone
 
-When the user wants **several** chart modules built together (the UC1 flow, often
-arriving from `plan-research`): discover valid inputs and **get the user's
-approval of every spec on the main thread** (Steps 0–3, including a
-`test_run_quant` render of anything uncertain), then **fan out one
-`module-builder` agent per approved spec**.
-Each agent creates its config, renders it once, and returns a compact summary —
-hand it a complete spec with the data source, symbol, and **fresh expiry codes**
-already resolved, since it cannot ask questions. Review the summaries with the
-user afterwards. If the harness can't fan out, build the approved specs
-sequentially inline with the same tools.
+When the user wants **several** similar chart modules (the UC1 flow, often
+arriving from `plan-research`), do **not** fan out N builders on N unverified
+specs. Approval proves the user wants the chart; only a rendered chart proves the
+spec is right — that the `data_key` matches an endpoint, that the expiry is live,
+that the values are plausible.
+
+1. **Draft the specs with the user on the main thread** (Steps 0–1). All questions
+   happen here.
+2. **Build ONE — the most representative — and render it.** `test_run_quant` if
+   anything is uncertain, then create and run. Show the user the real chart.
+3. **Confirm the pattern holds** before touching the siblings. Right instrument,
+   right endpoints, sensible last value and range, labels as expected. **Fix the
+   spec here, once**, while it is one config rather than N.
+4. **Now clone.** Spawn one **`module-builder`** agent per remaining approved
+   spec — hand each a complete spec with the data source, symbol and **fresh
+   expiry codes** already resolved, since it cannot ask questions.
+5. **Review the summaries with the user.** Anything `weak` / `blocked` /
+   `created_but_run_failed` goes to `module-fixer` with a written acceptance spec.
+
+If the harness can't fan out, build the remaining specs sequentially inline after
+step 3 — same tools, same checkpoint, no parallelism.
+
+> **Why the checkpoint is not optional here.** Sibling configs share a
+> classification or precision rule. Revise that rule after cloning and you pay the
+> edit N times, plus N re-runs and N verifications. Revise it at step 3 and you pay
+> once.
+
+## Fixing a config that already exists
+
+Repair is a **different job with its own agent**. Hand an existing, wrong config to
+**`module-fixer`** with a **written acceptance spec** — the concrete assertions its
+output must satisfy (which data keys appear, what precision, how a field is
+classified). It edits and re-runs up to five times, then returns `fixed` or
+`blocked` with the exact unmet assertion.
+
+Never route repair to `module-builder`. It creates once and stops by design;
+reusing it as an open-ended repair loop is how "re-spec these three scorecards"
+becomes 80 turns of edits with no definition of done.
+
+## The cheap path, stated plainly
+
+For a straightforward new chart against a known source, the whole job is **three
+calls**:
+
+```
+get_data_source_endpoints(source)  →  create_quant_config(…)  →  run_quant_chart(id)
+```
+
+If you are making many more calls than that, stop and ask what you are actually
+missing — usually it is an endpoint name or an expiry you could have fetched once.
 
 ## Refine an existing config
 

@@ -4,6 +4,7 @@ tools:
   - mcp__plugin_wealthink_mcp__list_*
   - mcp__plugin_wealthink_mcp__get_*
 model: haiku
+maxTurns: 10
 description: >
   Consume one large Wealthink payload — a finished run output, a full
   `list_events` result, or a stitched template report — and return a tight,

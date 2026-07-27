@@ -79,28 +79,58 @@ Four consequences drive every decision below:
 > in the skill; the hook enforces it. A single MCP tool call (e.g. "list modules")
 > is **not** a skill — it's a step inside one.
 
-### The approve-then-fan-out pattern (the core orchestration shape)
+### The verify-one-then-fan-out pattern (the core orchestration shape)
 
-For any "do N of these in parallel" flow (build N modules, run+verify N modules):
+For any "do N of these in parallel" flow (build N modules, run+verify N modules).
+
+> **Approval is not verification.** An earlier revision of this document called
+> this *approve-then-fan-out* and fanned out as soon as the user approved the
+> specs. That is wrong, and it was expensive: approval proves the user wants the
+> module, only a passing run proves the spec is *correct*. Sibling modules share
+> their classification and precision rules, so fanning out on unverified specs
+> pushes one wrong assumption into all N — and every later correction costs N
+> edits, N re-runs and N verifications. **Build one, verify it with the user, then
+> clone.** The extra round-trip is one run; the alternative is paying every
+> mistake N times.
 
 ```
-Main thread (skill)              Agents (Code only)            Main thread (skill)
+Main thread (skill)              Agents                        Main thread (skill)
 ─────────────────────            ──────────────────            ───────────────────
 gather intent / discover
+inspect ONE real payload
+  → derive field/precision/
+    classification rules
 match + propose specs
-ASK USER → approve specs   ──►   spawn 1 agent per item
+ASK USER → approve specs
+BUILD ONE + RUN IT
+ASK USER → is this right?   ◄─── the checkpoint the flow exists for
+                                 (fix the spec here, once, not N times)
+                           ──►   spawn 1 agent per REMAINING item
                                  (autonomous: do work,
                                   return result, NO questions)
                            ◄──   results returned
 review results WITH user
+  → anything wrong goes to module-fixer WITH an acceptance spec,
+    never back into module-builder
 ASK USER → approve outward action (publish / make public)
 execute outward action (gated by a hook in Code)
 ```
 
 Both Cowork and Code can fan out, so this is the default. If a harness can't
-spawn subagents, the same skill walks the items **sequentially** inline —
-identical tools, identical approvals, just no parallelism. The skill is
-authoritative; the agent is the scale path.
+spawn subagents, the same skill walks the remaining items **sequentially** inline
+after the checkpoint — identical tools, identical approvals, just no parallelism.
+The skill is authoritative; the agent is the scale path.
+
+**Build and repair are different jobs.** `module-builder` creates one module and
+stops; `module-fixer` repairs one existing module against a **written acceptance
+spec**, within a five-cycle budget, and returns the specific unmet assertion when
+it can't. Reusing the builder as a repair loop is a real failure mode with a
+measured cost — it produced 66–80-turn agents and 8.25 edits per module against a
+contract that allowed one. Two things prevent it: the builder has no `update_*`
+tools and the fixer has no `create_*` tools, so neither can drift into the other's
+job, and every worker carries a `maxTurns` cap so a runaway dies regardless of what
+its prose says. **A budget written only in prose is not a budget** — the builder's
+prose already said "test-run it once".
 
 ---
 
@@ -135,7 +165,8 @@ wealthink-plugin/
     lenses/                      # persona adapters — additive, thin
       private-equity/  public-markets/  venture/  fund-manager/
   agents/                        # flat — default discovery, no manifest key
-    module-builder.md  run-verify.md  output-digest.md          # workers
+    module-builder.md  module-fixer.md  run-verify.md            # workers
+    output-digest.md                                            # digest
     wealthink-researcher.md  wealthink-report-builder.md        # orchestrators
     pe-research.md  public-markets-research.md                  # lens orchestrators
   hooks/                         # root — single, universal set (+ tests/)
@@ -179,7 +210,7 @@ starts pointing at a menu entry that doesn't exist.
 
 - **Core** = self-contained, persona-agnostic mechanics. A core skill/agent never
   names PE/VC/equities. Core is the **only** place that owns how to build a
-  module, run a template, share a link. The worker agents (`module-builder`,
+  module, run a template, share a link. The worker agents (`module-builder`, `module-fixer`,
   `run-verify`, `output-digest`) are core and **never forked per persona**.
 - **A lens is a thin adapter**, not a re-implementation. It may contain *only*:
   vocabulary mapping (persona terms → Wealthink artifacts), default parameters
@@ -248,7 +279,8 @@ calling core skills and agents.
 
 | Agent | Layer | Job | Input → Output |
 |---|---|---|---|
-| `module-builder` | core worker | fan-out | One **approved** module spec → creates it + test-runs once → returns summary |
+| `module-builder` | core worker | fan-out | One **approved** module spec → creates it + test-runs once → returns summary. Creates only; never repairs. `maxTurns: 15` |
+| `module-fixer` | core worker | repair | One **existing** module + a **written acceptance spec** → up to 5 edit→run cycles → `fixed` or `blocked` with the exact unmet assertion. Repairs only; never creates. `maxTurns: 20` |
 | `run-verify` | core worker | fan-out | One module ID → runs (MCP poll wrapper) → verifies output → returns verdict + best `run_id`. **Recommends, never publishes.** |
 | `output-digest` | core worker | digest | A large run output / `list_events` / stitched report → returns a tight, structured summary. Used by any flow whose tool response is too big to hold. Runs on a cheap fast model — it exists to absorb bulk |
 | `wealthink-researcher` | orchestrator | orchestrator | End-to-end ad-hoc research |
@@ -301,7 +333,7 @@ digest · **[hook]** Code-enforced backstop (rule also in the skill).
 ### UC1 — Create / update section modules  *(originally "Agent, parallel")*
 
 Reclassified: **interactive orchestration skill + parallel `module-builder`
-fan-out** (approve-then-fan-out). Not a single agent — it is full of approvals.
+fan-out** (verify-one-then-fan-out). Not a single agent — it is full of approvals.
 
 1. Search/filter similar modules — **[step]** `discover` (`list_*_modules`)
 2. Check for a match — inline reasoning (no agent)
@@ -309,7 +341,8 @@ fan-out** (approve-then-fan-out). Not a single agent — it is full of approvals
 4. Test-run the candidate — **[step]** `run-research`
 5. Is this what you intended? — **[ask]**
 6. Assemble the approved spec(s) for all requested modules — **[skill]** `build-qual-module` / `build-quant-chart`
-7. **Fan out:** one **[agent]** `module-builder` per module → create + test-run + return summary. Sequential fallback if the harness can't fan out.
+7. **Build one + verify with the user** — **[ask]**. Fix the spec here, once.
+8. **Fan out:** one **[agent]** `module-builder` per *remaining* module → create + test-run + return summary. Anything wrong goes to **[agent]** `module-fixer` with an acceptance spec. Sequential fallback if the harness can't fan out.
 8. Run & publish now? — **[ask]** → hand off to UC2
 
 ### UC2 — Run & publish module outputs  *(originally "Agent, parallel")*
@@ -489,7 +522,7 @@ future knob, not a blocker today.
    every other flow that returns big output.
 4. **`plan-research` (UC3)** and **`understand-system` (UC4)** core skills — the
    front of the funnel.
-5. **`module-builder` agent (UC1)** + wire the approve-then-fan-out into
+5. **`module-builder` + `module-fixer` agents (UC1)** + wire verify-one-then-fan-out into
    `build-qual-module` / `build-quant-chart`.
 6. **`run-verify` agent (UC2)** + wire into `run-research` / `share-report`.
 7. **Confirm `share-report` (UC5)** and **`generate-layout` (UC6)** match the gated
