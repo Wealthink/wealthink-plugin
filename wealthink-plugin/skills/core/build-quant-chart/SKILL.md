@@ -119,70 +119,29 @@ When you only need to know a result's *structure* — which data keys came back,
 what fields a layout could render — pass **`data="schema"`** to the result call
 instead of pulling thousands of OHLCV rows.
 
-## Building several charts at once — fan out, unless it's first contact
+## Building several charts at once
 
-**Fanning out is the default.** Building and rendering a config takes minutes, so
-serialising N of them is a bad experience. Spawn one **`module-builder`** agent per
-approved spec and let them run concurrently — hand each a complete spec with the
-data source, symbol and **fresh expiry codes** already resolved, since it cannot
-ask questions.
+What you need to know to sequence this well:
 
-The question is not *how many* configs, it's **whether they share an assumption
-nothing has tested yet.** Sibling configs built on one endpoint mapping or
-precision rule fail together; unrelated charts fail independently.
+- **Building and rendering a config takes minutes.** `module-builder` agents run
+  concurrently — spawn one per approved spec, each with the data source, symbol
+  and **fresh expiry codes** already resolved, since it cannot ask questions.
+- **Sibling configs share their source's endpoint mapping and precision rules**,
+  so they succeed or fail together; unrelated charts fail independently.
+- **`test_run_quant` renders a spec without creating a config**, so a mapping can
+  be checked before it is committed to N configs. Test-runs are concurrent too.
+- **A multi-instrument comparison is the maximally correlated case**: because
+  duplicate endpoint names collapse (see above), it must be N sibling configs
+  sharing one rule, and every later change costs N edits and N re-runs.
 
-**Fan out immediately** when the plan states field names, precision and
-classification rules taken from a **real payload** (`plan-research` Step 3.5) and
-each spec carries **written acceptance assertions**. That's the normal case.
-
-**Prove one first** only on first contact — a data source nobody has run here yet,
-a new endpoint mapping, a new classification rule. One round-trip **per source**,
-not per batch.
-
-> Quant specs are the cheaper case: endpoints, data keys and precision are all
-> visible in a payload, so Step 3.5 does most of the proving. If the source is
-> already known-good, go straight to fan-out.
-
-Use **`test_run_quant`** to prove a spec — it renders without creating a config, so
-a wrong spec leaves nothing behind. For a large near-identical batch, fan out N
-test-runs in parallel, review together, then fan out N creates: two parallel waves,
-no serial step, nothing wrong persisted.
-
-**Review the summaries with the user.** Anything `weak` / `blocked` /
-`created_but_run_failed` goes to `module-fixer` with a written acceptance spec —
-fixers run in parallel and are bounded at five cycles each.
-
-If the harness can't fan out, build the specs sequentially inline — same tools,
-same approvals, no parallelism.
-
-> **The one case where the checkpoint always pays.** Because duplicate endpoint
-> names collapse (see above), a multi-instrument comparison has to be N sibling
-> configs sharing one rule — the maximally correlated case. Prove that rule on one
-> config before cloning it across the set.
+Sequencing across a whole plan is worked out in `plan-research`.
 
 ## Fixing a config that already exists
 
-Repair is a **different job with its own agent**. Hand an existing, wrong config to
-**`module-fixer`** with a **written acceptance spec** — the concrete assertions its
-output must satisfy (which data keys appear, what precision, how a field is
-classified). It edits and re-runs up to five times, then returns `fixed` or
-`blocked` with the exact unmet assertion.
-
-Never route repair to `module-builder`. It creates once and stops by design;
-reusing it as an open-ended repair loop is how "re-spec these three scorecards"
-becomes 80 turns of edits with no definition of done.
-
-## The cheap path, stated plainly
-
-For a straightforward new chart against a known source, the whole job is **three
-calls**:
-
-```
-get_data_source_endpoints(source)  →  create_quant_config(…)  →  run_quant_chart(id)
-```
-
-If you are making many more calls than that, stop and ask what you are actually
-missing — usually it is an endpoint name or an expiry you could have fetched once.
+Use the **`module-fixer`** agent. It has no `create_*` tools and is bounded to
+five edit→run cycles. Give it the assertions the output must satisfy — which data
+keys appear, what precision, how a field is classified — without them it returns
+`blocked` rather than guessing.
 
 ## Refine an existing config
 

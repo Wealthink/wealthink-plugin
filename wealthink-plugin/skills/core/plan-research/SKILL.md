@@ -58,15 +58,12 @@ Compare the goal against what exists. Decide, per piece of the goal:
   provisioned by Wealthink (app / account manager), **not** created through Claude
   (see `market-news`).
 
-## Step 3.5 — Look at one real payload per new source (step)
+## Step 3.5 — Look at one real payload per new source
 
-**Before you write a single module's `context` or classification rule, fetch one
-real record from each data source the plan will use and read it.**
-
-This is the cheapest step in the skill and the one that saves the most. Rules
-written from an assumed schema get revised over and over once real data arrives —
-and because sibling modules share those rules, every revision is paid N times. One
-look up front replaces all of it.
+One record from a source you haven't used before costs a single call, and it is
+usually the difference between rules that hold and rules that get revised. Because
+sibling modules share those rules, every revision is paid once per module — so
+this is worth doing whenever the plan introduces a source nobody here has run.
 
 For each source the plan introduces:
 
@@ -102,17 +99,17 @@ Lay out a concrete, ordered plan the user can approve:
 Plan: Weekly Gold & Rupee Client Brief (weekly, client-facing)
 
 Reuse (already in your workspace)
-  • qm_abc…  Gold Market SWOT            → as-is
+  • qm_abc…  Gold Market SWOT            → as-is, also used by your Daily Bullion Brief
 Data rules (from a real payload — confirm these)
   • Weights arrive as 0.0432 → render as 4.32%
   • Cash rows are marked sector_name "Unspecified", not a null sector
-Create (fan out — rules proven against a real payload)
+Create
   • Qual:  "Rupee drivers digest"        → events, tag: rupee · source: news
   • Quant: "MCX Gold near-month 7D"      → candlestick, expiry from get_expiry_dates
   Acceptance: each returns its named sections, non-empty, for the current week
 Assemble
   • Template "Weekly Gold & Rupee Brief" → order: news summary → gold chart → SWOT → rupee digest
-  • Frequency: weekly · client-facing → plan to share via share-report
+  • Frequency: weekly — confirm before I set it · client-facing → share via share-report
 
 Gaps / notes
   • LBMA spot price not in current sources — would need a new data source or tracker.
@@ -130,26 +127,45 @@ Ask whether to proceed. On yes, **hand off** — do not create here:
 - Assemble the report → `research-reports`
 - (Later) lay it out → `generate-layout`; share it → `share-report`
 
-### Tell the build skills whether this batch can fan out
+### Work out the build order here
 
-They build several modules **concurrently by default** — serialising them costs
-2–4 minutes each. What they need from you is the one judgement you're better placed
-to make: **does this batch rest on anything unproven?**
+This is the only skill that sees the whole graph — every report, every module,
+which sources repeat and which modules are shared. The build skills each see one
+module, so they can't work this out. Hand them an order.
 
-State it explicitly in the handoff, in one line:
+**How the platform behaves**, which is all you need to derive one:
 
-- **"Fan out — rules proven."** The field/precision/classification rules in Step 3.5
-  came from a real payload, each spec has acceptance assertions, and the sources
-  have produced correct output here before. Build all of them at once.
-- **"First contact — prove `<spec name>` first."** The batch shares something
-  nothing has tested yet: a data source new to this workspace, a new classification
-  rule, or a new shared output format. Name the most representative spec to
-  test-run before the rest go out. This costs one round-trip **per source**, not
-  per batch.
+| | |
+|---|---|
+| **Pipeline** | data source → module → template → run → layout → share |
+| **Costs** | a module build+run is 2–4 min; `list_*` calls are cheap; `test_run_*` costs a run and saves nothing |
+| **Independent** | modules from each other; reports from each other |
+| **Ordered** | a template can only be assembled once its modules exist |
+| **Correlated** | modules on the same source share its field, precision and classification rules — they fail together |
+| **Reusable** | one module can sit in many templates and they share its result — create it once |
+| **Irreversible** | publishing, archiving, hard-deleting a source, and committing to a schedule |
 
-Nominate the representative spec yourself — you know which one exercises the risky
-rule. And prefer a test-run to a build for the check: `test_run_qual` /
-`test_run_quant` validate a spec without persisting anything.
+Two consequences worth stating in the plan explicitly:
+
+- **Group by source, not by report.** Modules sharing an untested source are the
+  only ones where checking one tells you anything about the others. Four modules
+  from four sources in one report are four independent risks; eight modules across
+  three reports on one source are a single risk. Where a rule is unproven,
+  `test_run_qual` / `test_run_quant` check it without saving anything — and those
+  checks are independent of each other, so they run together too.
+- **Deduplicate across reports before counting the work.** If three reports open
+  with the same macro digest, that is one module, not three. Say so in the plan —
+  it's usually the largest saving available.
+
+Then state the order plainly, e.g.:
+
+```
+Build order
+  1. Check 2 new sources           (2 test-runs, together)
+  2. Create 9 modules              (together — 3 are shared across reports)
+  3. Assemble 3 templates          (together, after step 2)
+  4. Confirm schedules with the user, then set them
+```
 
 ## Notes
 

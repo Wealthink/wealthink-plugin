@@ -79,93 +79,55 @@ Four consequences drive every decision below:
 > in the skill; the hook enforces it. A single MCP tool call (e.g. "list modules")
 > is **not** a skill — it's a step inside one.
 
-### The fan-out pattern, and the one condition that gates it
+### The fan-out pattern
 
-For any "do N of these in parallel" flow (build N modules, run+verify N modules).
-
-**Fan-out is the default.** A module build-and-run takes 2–4 minutes, so
-serialising N of them is a materially worse experience and usually buys nothing.
-Approval on the main thread, then one agent per item, concurrently.
-
-> **The gate is correlated failure, not scale.** Approval proves the user wants the
-> module; it does not prove the spec is *correct*. That distinction only matters
-> when the siblings share an assumption nothing has tested — a classification rule,
-> a precision, an endpoint mapping. Those fail *together*, so proving the rule once
-> prevents N wrong modules. Modules that fail *independently* gain nothing from a
-> checkpoint: building one tells you nothing about the others and costs a
-> round-trip for no information.
->
-> So the rule is **not** "always build one first". It is:
->
-> - **Fan out immediately** when the plan quotes field names, precision and
->   classification rules from a **real payload** (§7, inspect-first) *and* each spec
->   carries **written acceptance assertions**. This is the normal, fast path.
-> - **Prove one first only on first contact** — a data source nobody has run here
->   yet, a new classification rule, a new shared output format. That is one
->   round-trip **per source**, not per batch; once a rule has produced correct
->   output, later batches against it fan out freely.
->
-> **Prove with a test-run, not a create.** `test_run_qual` / `test_run_quant`
-> execute a spec without persisting it, so a wrong spec leaves nothing to archive.
-> For a large near-identical batch, fan out N *test-runs* in parallel, review them
-> together, then fan out N creates — two parallel waves, no serial step at all.
->
-> **Qual needs the checkpoint more often than quant.** A payload inspection nearly
-> proves a quant spec, since endpoints, keys and precision are visible in the data.
-> It cannot prove what a `context` will make the LLM write; whether the expected
-> sections come back is only knowable from a run.
->
-> *(History: an earlier revision of this document said "approve then fan out" with
-> no notion of correlated risk, and a later one over-corrected to "always build one
-> first". The first shipped one wrong assumption into every sibling; the second
-> taxed every well-planned batch with a round-trip it didn't need. The condition
-> above is the distinction both were missing.)*
+For any "do N of these in parallel" flow (build N modules, run+verify N modules):
+approval on the main thread, then one agent per item, concurrently. A module
+build-and-run takes 2–4 minutes, so serialising N of them is a materially worse
+experience.
 
 ```
 Main thread (skill)                    Agents                  Main thread (skill)
 ─────────────────────                  ──────────────          ───────────────────
 gather intent / discover
-inspect ONE real payload  ─────────────────────────────────►  rules are now grounded
-  → field / precision / classification rules
-match + propose specs, each with acceptance assertions
+plan-research works out the build order (what's shared, what's ordered)
 ASK USER → approve specs
         │
-        ├── first contact with this source/rule?
-        │      └─ yes → test_run ONE (no persist)
-        │               ASK USER → is this right?   ◄── fix the spec here, once
-        │
-        └── otherwise, or once proven ──►  spawn 1 agent PER ITEM, concurrently
-                                           (autonomous, no questions)
-                                    ◄──   results returned
-review results WITH user
-  → anything wrong goes to module-fixer WITH an acceptance spec,
-    bounded and parallel — never back into module-builder
+        └──────────────────────────►  spawn 1 agent PER ITEM, concurrently
+                                       (autonomous, no questions)
+                                ◄──   results returned
+review results WITH user  → anything wrong goes to module-fixer
 ASK USER → approve outward action (publish / make public)
 execute outward action (gated by a hook in Code)
 ```
 
-Both Cowork and Code can fan out, so this is the default. If a harness can't
-spawn subagents, the same skill walks the items **sequentially** inline —
-identical tools, identical approvals, just no parallelism. The skill is
-authoritative; the agent is the scale path.
+Both Cowork and Code can fan out. If a harness can't spawn subagents, the same
+skill walks the items **sequentially** inline — identical tools, identical
+approvals, just no parallelism. The skill is authoritative; the agent is the scale
+path.
 
-**Being wrong is now bounded.** The measured disaster — 8.25 edits per module,
-66–80-turn agents — came from an *unbounded* repair loop with no definition of
-done. With `module-fixer` taking a written acceptance spec, capped at five cycles
-and running N-at-a-time, "fan out then fix" is a bounded concurrent job rather than
-an open-ended one. That is a large part of why fan-out can be the default: the cost
-of a wrong batch fell by an order of magnitude.
+**Sequencing lives in one place.** `plan-research` is the only skill that sees the
+whole graph — every report, every module, which sources repeat, which modules are
+shared — so it produces the build order and the build skills execute it. The build
+skills carry the *facts* they need locally (what a build costs, that modules on one
+source share its rules, that `test_run_*` saves nothing) but not a procedure. This
+is deliberate: an agent given the costs and the dependencies derives a good order
+for graph shapes we never anticipated, and a flowchart doesn't.
+
+> *(History: this section previously carried a four-branch decision procedure that
+> was written, inverted and re-inverted across three commits, and was restated in
+> five files in five wordings. The facts survived; the procedure didn't.)*
 
 **Build and repair are different jobs.** `module-builder` creates one module and
-stops; `module-fixer` repairs one existing module against a **written acceptance
-spec**, within a five-cycle budget, and returns the specific unmet assertion when
-it can't. Reusing the builder as a repair loop is a real failure mode with a
-measured cost — it produced 66–80-turn agents and 8.25 edits per module against a
+stops; `module-fixer` repairs one existing module against a written acceptance
+spec within a five-cycle budget. Reusing the builder as a repair loop is a
+measured failure mode — 66–80-turn agents, 8.25 edits per module against a
 contract that allowed one. Two things prevent it: the builder has no `update_*`
 tools and the fixer has no `create_*` tools, so neither can drift into the other's
-job, and every worker carries a `maxTurns` cap so a runaway dies regardless of what
-its prose says. **A budget written only in prose is not a budget** — the builder's
-prose already said "test-run it once".
+job, and every worker carries a `maxTurns` cap so a runaway dies regardless of its
+prose. **A budget written only in prose is not a budget** — the builder's prose
+already said "test-run it once". *(The specific caps — 15/20/12/10 — were chosen
+from one observed session and should be treated as provisional.)*
 
 ---
 
@@ -469,7 +431,21 @@ stored in the template's `custom_layout` — **not** a grid config.
 - **Schedules have side effects now.** `run_frequency` executes. Setting one
   commits the user to recurring runs, so it needs the same confirm-first treatment
   as any other outward action, and `schedule_status` must be read back before
-  telling a user their schedule is live.
+  telling a user their schedule is live. For most users the scheduled run *is* the
+  product — they approve once and read the output in the app — so the schedule is
+  the deliverable, not a setting.
+- **A template assembles its modules' latest published results; it does not run
+  them.** Four consequences the whole design leans on: one module can sit in many
+  templates and they share its result (create once, reference many); a template run
+  succeeds or fails whole, with no partial status; a scheduled template pauses only
+  once *no* module has produced anything new; and — most importantly — **a
+  successful run can contain stale sections.** If one module fails to produce a new
+  result, the template still completes, reusing that module's previous output, with
+  no error anywhere. Skills must therefore report each section's data date rather
+  than certifying a report from the template's status. **Freshness is judged
+  against each module's own `run_frequency`, never the report's cadence** — a
+  monthly economic module inside a weekly report is correctly weeks old, so the
+  plugin surfaces the dates and leaves the significance to the analyst.
 - **Large-output digestion** — any flow whose tool response is too big to hold
   (run outputs, full `list_events`, stitched reports) routes through a digest
   agent (`output-digest`, or `run-verify` for the run case). This is the
@@ -482,8 +458,9 @@ stored in the template's `custom_layout` — **not** a grid config.
   thread.
 - **`market-news`** — an existing capability none of the six flows referenced.
 - **`discover` is one reused sub-step**, not re-implemented per flow.
-- **Partial-failure & `plan_required` / 402** — surface plainly, continue with
-  what the workspace can do. Already in the existing skills; keep.
+- **Failure & `plan_required` / 402** — surface plainly, continue with what the
+  workspace can do. Note the platform has no partial-failure *status*; the
+  real-world equivalent is the stale-section case above.
 - **Polling is not a skill** — it's the MCP `run_module`/`run_template` poll
   wrapper (or an SSE stream tool).
 - **Tenant scope** — everything is the user's workspace; never imply cross-org.

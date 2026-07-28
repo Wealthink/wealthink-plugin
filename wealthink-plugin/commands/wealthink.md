@@ -35,14 +35,11 @@ Handle this Wealthink request using the Wealthink MCP connector:
 4. **For runs**, prefer the blocking wrappers (`run_module`, `run_quant_chart`,
    `run_template`) so you return a finished result. If one times out, use the
    returned `run_id` with `get_qual_run_status` / `get_template_run_status`.
-5. **Scale & isolate when needed.**
-   - *Build N modules* → **fan out** one `module-builder` per approved spec,
-     concurrently; serialising costs minutes each. Prove one spec first (with
-     `test_run_*`, which persists nothing) only on **first contact** — a source
-     nobody has run here, or a new classification rule the siblings all share.
-   - *Fix an existing module* → **`module-fixer`**, with a written acceptance spec
-     (the assertions its output must satisfy). Never send repair work to
-     `module-builder` — it creates once and stops by design.
+5. **Scale & isolate when needed.** Builds take 2–4 minutes each, so the workers
+   are there to run concurrently rather than to add ceremony:
+   - *Build N modules* → one `module-builder` per approved spec.
+   - *Fix an existing module* → `module-fixer` (it cannot create; builders cannot
+     repair).
    - *Run N modules* → one `run-verify` per module; agents recommend, the user
      approves outward actions.
    - *Any single response too big to hold/render* (a full run, a wide

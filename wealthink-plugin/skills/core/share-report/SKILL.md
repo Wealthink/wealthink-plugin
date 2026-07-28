@@ -28,6 +28,16 @@ whether the run is public, without pulling any report content.
 Confirm `status = completed` before publishing. If `is_public` is already true,
 the run has a live link — say so and show `public_link` rather than re-publishing.
 
+> **`completed` does not mean every section is current.** A template assembles its
+> modules' latest published results, so if one module failed to produce a new
+> result the run still completes — reusing that module's older output, with no
+> error (see `research-reports`). Before a link goes to a client, check when each
+> module's data was produced and tell the user which sections are from when. Judge
+> a module against **its own** `run_frequency`, not the report's cadence: a monthly
+> economic section is *supposed* to be weeks old. Surface the dates and let the
+> analyst decide — but never hand over a client link while silently assuming a
+> `completed` status means fresh.
+
 ## Step 2 — Publish
 
 `set_template_run_visibility(run_id, <visibility → public>)` — mark the run public.
