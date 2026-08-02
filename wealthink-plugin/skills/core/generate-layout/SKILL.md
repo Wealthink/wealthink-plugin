@@ -1,6 +1,14 @@
 ---
 name: generate-layout
-allowed-tools: mcp__plugin_wealthink_mcp__*
+allowed-tools:
+  - mcp__plugin_wealthink_mcp__get_*
+  - mcp__plugin_wealthink_mcp__list_*
+  - Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/b64.py *)
+  - Read
+  - Write
+  - mcp__plugin_wealthink_mcp__run_template
+  - mcp__plugin_wealthink_mcp__update_template
+  - Agent(output-digest)
 description: >
   Generate the visual layout of a Wealthink report/template as a frontend-rendered
   design — write a self-contained TypeScript/React component, gzip+base64-encode it,
@@ -47,15 +55,23 @@ genuinely missing (e.g. you don't know which template). Confirm the target
 
 The component must read real fields, so know the data shape first:
 
-- Fetch a real run of the template — `get_template_run_status(run_id)` (find a
-  run via `list_template_reports`), or `run_template(template_id)` if none exists.
-- Inspect the `result` payload: is it an array of section objects, a stringified
-  array, or a single object? Note the field names you'll render.
-- **These payloads are big.** `list_template_reports` and a completed run
-  routinely run to **hundreds of KB** and will overflow context (in practice this
-  has returned 500K+ chars and errored outright). **Always digest the run in a
-  subagent** (`output-digest`) and have it return just the `result` schema + a
-  couple of sample rows — never pull a full run into the main context.
+- Find a run: `list_template_reports(template_id=<id>)` — **`template_id` is
+  required**, and the response is metadata only (`id, run_id, date, status,
+  is_public, public_link`). That's exactly what you need here; don't ask for more.
+- **Fetch the shape, not the data.** `get_template_run_status(run_id, data="schema")`
+  returns a Draft-7 JSON Schema of `result` instead of the rows themselves. You are
+  writing a component against *field names and types* — the schema is the right
+  input, and it turns a payload of thousands of OHLCV rows into a short structural
+  description.
+  - Use `data="both"` if you also want a look at real values (e.g. to size a
+    column or check a date format).
+  - Only reach for `data="full"` if you genuinely need to reason over the numbers,
+    and route it through the `output-digest` agent when you do.
+- If no run exists yet, `run_template(template_id)` first.
+
+> `data="schema"` is the single biggest token lever available here. A full stitched
+> report has overflowed context outright in the past (500K+ chars); the schema of
+> the same payload is a few hundred lines.
 
 ## Step 3 — Decide the design source
 
@@ -71,24 +87,31 @@ In priority order:
 3. **No design and no reference with a layout** → generate a clean, sensible
    default that follows the format spec and mobile rules.
 
-### Reading a reference template's branding (mind the payload size)
+### Reading a reference template's branding
 
-`list_templates` returns the **full `custom_layout` blob for every row**, so an
-unfiltered list is huge (~70KB per template — 20+ templates overflows context).
-Two rules keep this cheap:
+> **`custom_layout` is not returned by default.** `list_templates` and
+> `get_template_by_id` both omit it unless you pass **`include_layout=true`**.
+> Without that flag the decode step below silently gets nothing — you'll conclude
+> the template has no layout when it does. This is the one parameter this skill
+> cannot work without.
 
-- **To browse/find a template:** call `list_templates` with a small page —
-  `page_size: 5–10`, sorted `updated_at` desc — plus a name search (`q=…`) so the
-  target lands on page 1. Don't page through everything.
-- **To fetch one template you already know:** `list_templates(id=<template_id>)`
-  returns just that single template (one blob, fits in context) — use this instead
-  of listing all and filtering with `jq`. *(Yes, there is a single-template fetch:
-  it's the `id` param on `list_templates`.)*
+The defaults are lean, so the sequence is cheap:
+
+- **To browse/find a reference template:** `list_templates(q=<name>, page_size=5,
+  sort_by="updated_at", sort_order="desc")` — **without** `include_layout`. You are
+  only picking a target here; don't pull layouts you won't read.
+- **To fetch the one you picked:** `get_template_by_id(id, include_layout=true)`.
+  One template, one blob (~13–14 KB), which fits comfortably.
+- **Never** combine `include_layout=true` with an unfiltered list — that is the one
+  call that still blows context, and it is now entirely avoidable.
 - **Decode** the `custom_layout` (gzip+base64) with the bundled script, then read
   the TSX:
   ```bash
-  python3 "${CLAUDE_PLUGIN_ROOT}/skills/core/generate-layout/scripts/b64.py" decode <ref.b64>
+  python3 ${CLAUDE_SKILL_DIR}/scripts/b64.py decode <ref.b64>
   ```
+  Run it exactly in that form — unquoted, via `${CLAUDE_SKILL_DIR}`. This skill's
+  `allowed-tools` pre-approves that precise command shape, so it runs without a
+  permission prompt; any other spelling of the same path will prompt.
 
 ## Step 4 — Write the component
 
@@ -112,8 +135,7 @@ palette, key sections) for the user instead.
 1. Gzip+base64-encode the component **into a file** (so the blob never has to land
    in chat):
    ```bash
-   python3 "${CLAUDE_PLUGIN_ROOT}/skills/core/generate-layout/scripts/b64.py" \
-     encode Component.tsx > layout.b64
+   python3 ${CLAUDE_SKILL_DIR}/scripts/b64.py encode Component.tsx > layout.b64
    ```
 2. Save it by reading `layout.b64` and passing its contents straight into the tool
    call: `update_template(template_id, custom_layout=<contents of layout.b64>)`.
@@ -124,8 +146,10 @@ palette, key sections) for the user instead.
 
 ## Step 6 — Verify and hand back
 
-- Read the template back (decode its `custom_layout`) to confirm the encoded code
-  round-trips and is the component you intended.
+- Read the template back with **`get_template_by_id(template_id,
+  include_layout=true)`** and decode its `custom_layout` to confirm the encoded
+  code round-trips and is the component you intended. Without `include_layout=true`
+  the field comes back absent and the verification is vacuous.
 - Return the Wealthink link so the user can open the report and see it rendered.
 - If they want changes, edit the `.tsx`, re-encode, re-save.
 

@@ -16,8 +16,9 @@ Handle this Wealthink request using the Wealthink MCP connector:
 
 1. **Connection check.** If a tool reports the connector isn't authenticated
    ("not connected" / 401), use `getting-started` to have the user connect
-   Wealthink via OAuth (`/mcp` → **wealthink** → **Authenticate**) before
-   retrying. Never ask for an email or password.
+   Wealthink via OAuth — in Claude Code that is `/mcp` → the Wealthink server
+   (listed as **`plugin:wealthink:mcp`**) → **Authenticate**. Never ask for an
+   email or password.
 2. **Classify the intent** and route to the matching skill:
    - *What's happening / news on X* → `market-news` (`list_events`)
    - *Plan / set up new research, "what should I build?"* → `plan-research`
@@ -34,12 +35,16 @@ Handle this Wealthink request using the Wealthink MCP connector:
 4. **For runs**, prefer the blocking wrappers (`run_module`, `run_quant_chart`,
    `run_template`) so you return a finished result. If one times out, use the
    returned `run_id` with `get_qual_run_status` / `get_template_run_status`.
-5. **Scale & isolate when needed.** For "do N of these" (build/run several
-   modules), approve the specs with the user, then fan out one worker agent per
-   item (`module-builder` to build, `run-verify` to run+verify) — agents recommend,
-   the user approves outward actions. For any single response that's too big to
-   hold/render (a full run, a wide `list_events`, a stitched report), route it
-   through an `output-digest` agent.
+5. **Scale & isolate when needed.** Builds take 2–4 minutes each, so the workers
+   are there to run concurrently rather than to add ceremony:
+   - *Build N modules* → one `module-builder` per approved spec.
+   - *Fix an existing module* → `module-fixer` (it cannot create; builders cannot
+     repair).
+   - *Run N modules* → one `run-verify` per module; agents recommend, the user
+     approves outward actions.
+   - *Any single response too big to hold/render* (a full run, a wide
+     `list_events`, a stitched report) → try `data="schema"` first, then route it
+     through an `output-digest` agent.
 6. **Present clearly** — an analyst-style summary, charts described in prose, no
    raw JSON dumps.
 

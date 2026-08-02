@@ -1,6 +1,8 @@
 ---
 name: private-equity
-allowed-tools: mcp__plugin_wealthink_mcp__*
+allowed-tools:
+  - mcp__plugin_wealthink_mcp__get_*
+  - mcp__plugin_wealthink_mcp__list_*
 description: >
   Set up and run private-equity research on Wealthink — portfolio-company
   monitoring, deal/sector screens, and LP reporting packs. Use when the user talks
@@ -23,27 +25,35 @@ and starter templates as real demand appears, but keep it an adapter.
 |----------|--------------------|-----------|
 | "Monitor portfolio company X" | a qual module over news tagged to that company | `build-qual-module` |
 | "Deal / sector screen" | a qual module (+ charts) over a sector's tracked news | `build-qual-module` + `build-quant-chart` |
-| "Quarterly LP pack" | a **template** of portfolio + market modules, run **monthly/quarterly** | `research-reports` |
+| "Quarterly LP pack" | a **template** of portfolio + market modules, run **monthly**, or on demand at quarter-end | `research-reports` |
 | "What's happening with my portfolio?" | tracked events filtered by company/sector tags | `market-news` |
 | "Send the pack to LPs" | publish a report run to a link | `share-report` |
 
 ## Default parameters for this persona
 
 - **Tags** — one per portfolio company and per watched sector.
-- **Cadence** — **monthly/quarterly** for LP packs; weekly for active deal screens.
+- **Cadence** — **monthly** for LP packs (run on demand at quarter-end — see the
+  caveat below); weekly for active deal screens.
 - **Qual output shape** — *Company Update*, *Key Developments*, *Risks/Watch
   Items*, *Valuation/Exit Considerations*.
+
+> **Cadence caveat:** `create_template` supports `daily | weekly | monthly`
+> only — there is no `quarterly` schedule. Set a quarterly pack to `monthly`
+> and have the user run it on their own quarter-end, or leave it unscheduled
+> and run it on demand. Say which you've done; don't promise a schedule the
+> platform can't keep.
 
 ## Starter templates (suggest, then build via `research-reports`)
 
 - **Portfolio Monitor** — one section per portfolio company + a market backdrop.
-- **LP Quarterly Pack** — portfolio updates → sector context → outlook. Quarterly.
+- **LP Quarterly Pack** — portfolio updates → sector context → outlook. Run on
+  demand at quarter-end (or scheduled monthly and shared quarterly).
 - **Deal Screen** — a sector scan with charts and a qualitative read.
 
 ## How a request flows
 
 Map intent → if open-ended, `plan-research` → build via `build-qual-module` /
-`build-quant-chart` (approve-then-fan-out) → assemble/run via `research-reports`
+`build-quant-chart` (fan out the approved specs) → assemble/run via `research-reports`
 → lay out (`generate-layout`) → distribute (`share-report`, confirm before public).
 
 ## Composing with other connectors (defensive)

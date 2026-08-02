@@ -1,6 +1,8 @@
 ---
 name: venture
-allowed-tools: mcp__plugin_wealthink_mcp__*
+allowed-tools:
+  - mcp__plugin_wealthink_mcp__get_*
+  - mcp__plugin_wealthink_mcp__list_*
 description: >
   Set up and run venture-capital research on Wealthink — deal-pipeline tracking,
   investment-thesis monitoring, and portfolio-update reports. Use when the user
@@ -43,7 +45,7 @@ it an adapter.
 ## How a request flows
 
 Map intent → if open-ended, `plan-research` → build via `build-qual-module` /
-`build-quant-chart` (approve-then-fan-out) → assemble/run via `research-reports`
+`build-quant-chart` (fan out the approved specs) → assemble/run via `research-reports`
 → lay out (`generate-layout`) → distribute (`share-report`, confirm before public).
 
 ## Composing with other connectors (defensive)

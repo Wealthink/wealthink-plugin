@@ -18,7 +18,8 @@ def main() -> None:
         "Wealthink reminder: Wealthink MCP tools require an authenticated (OAuth) "
         'connection. If any Wealthink tool reports "not connected" / "not '
         'authenticated" / 401, use the getting-started skill: run /mcp and '
-        "Authenticate the wealthink server (browser consent) before retrying — "
+        "Authenticate the Wealthink server — the bundled one is listed as "
+        "plugin:wealthink:mcp — before retrying (browser consent); "
         "never ask the user for an email or password. Never invent module / "
         "template / tag / config IDs — resolve them with the `list_*` discovery "
         "tools first. Publishing a report (making a run public) and archiving a "

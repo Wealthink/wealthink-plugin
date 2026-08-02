@@ -1,6 +1,8 @@
 ---
 name: public-markets
-allowed-tools: mcp__plugin_wealthink_mcp__*
+allowed-tools:
+  - mcp__plugin_wealthink_mcp__get_*
+  - mcp__plugin_wealthink_mcp__list_*
 description: >
   Set up and run public-markets / equity research on Wealthink — stock and sector
   coverage, morning notes and daily wraps, earnings previews and reviews, and
@@ -58,7 +60,7 @@ Use these as starting points (confirm, don't impose):
 2. **Plan if it's open-ended** ("set up my coverage") → hand to `plan-research`
    to confirm scope, reuse vs create, and gaps.
 3. **Build** the mapped modules → `build-qual-module` / `build-quant-chart`
-   (approve-then-fan-out for several names at once).
+   (fan out across several names at once).
 4. **Assemble & run** the note/pack → `research-reports`.
 5. **Lay out** for the desk's surface (web/mobile) → `generate-layout`.
 6. **Distribute** → `share-report` (publish the run; confirm before making public).

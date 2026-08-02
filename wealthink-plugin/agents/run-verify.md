@@ -1,5 +1,11 @@
 ---
 name: run-verify
+tools:
+  - mcp__plugin_wealthink_mcp__list_*
+  - mcp__plugin_wealthink_mcp__get_*
+  - mcp__plugin_wealthink_mcp__run_module
+  - mcp__plugin_wealthink_mcp__run_quant_chart
+maxTurns: 12
 description: >
   Run one Wealthink module and verify its output — return a verdict plus the best
   run_id, never the raw payload. Use as the parallel fan-out worker in the
@@ -41,7 +47,17 @@ Plotly figure JSON.
    - Qualitative: did the expected sections come back, non-empty and on-topic?
    - Quantitative: did a figure render? Is the last value / range plausible (not
      null, not stale)?
+   Most of that is a question about *structure*, which `data="schema"` answers on
+   its own — it returns a JSON Schema of `result` instead of the rows. Start there;
+   pull `data="both"` or `data="full"` only for the plausibility checks that
+   genuinely need values (a last price, a date). A quant result can be thousands of
+   rows and none of them change the verdict.
 3. **Form a verdict** — good / weak / failed — with a one-line reason.
+   `DATA_SOURCE_KEY_MISSING` is `failed` and **not retryable** — the module's data
+   source needs credentials added in the Wealthink app, a human action. Say so and
+   stop.
+   If the module is scheduled, note its `schedule_status`: an auto-paused schedule
+   explains a stale-looking result better than a bad module does.
 
 ## What you return
 

@@ -1,6 +1,8 @@
 ---
 name: fund-manager
-allowed-tools: mcp__plugin_wealthink_mcp__*
+allowed-tools:
+  - mcp__plugin_wealthink_mcp__get_*
+  - mcp__plugin_wealthink_mcp__list_*
 description: >
   Set up and run fund-manager research on Wealthink — allocation and risk
   monitoring, mandate/compliance reporting, and client/board reporting packs. Use
@@ -31,9 +33,16 @@ templates as demand appears, but keep it an adapter. This persona leans on
 ## Default parameters for this persona
 
 - **Tags** — one per asset class / sleeve / mandate theme.
-- **Cadence** — **monthly/quarterly** for mandate/board packs; weekly for risk.
+- **Cadence** — **monthly** for mandate/board packs (run on demand at quarter-end
+  — see the caveat below); weekly for risk.
 - **Qual output shape** — *Allocation Snapshot*, *Performance Drivers*, *Risk &
   Compliance Notes*, *Outlook*.
+
+> **Cadence caveat:** `create_template` supports `daily | weekly | monthly`
+> only — there is no `quarterly` schedule. Set a quarterly pack to `monthly`
+> and have the user run it on their own quarter-end, or leave it unscheduled
+> and run it on demand. Say which you've done; don't promise a schedule the
+> platform can't keep.
 
 ## Starter templates (suggest, then build via `research-reports`)
 
@@ -44,7 +53,7 @@ templates as demand appears, but keep it an adapter. This persona leans on
 ## How a request flows
 
 Map intent → if open-ended, `plan-research` → build any needed modules via the
-`build-*` skills (approve-then-fan-out) → assemble/run via `research-reports` →
+`build-*` skills (fan out the approved specs) → assemble/run via `research-reports` →
 lay out (`generate-layout`) → distribute (`share-report`, confirm before public).
 
 ## Composing with other connectors (defensive)

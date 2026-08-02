@@ -1,14 +1,26 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "wealthink",
   "displayName": "Wealthink for agents",
   "description": "Run financial research on Wealthink from inside Claude. Browse the market news Wealthink tracks for you, build and run qualitative + quantitative research modules, generate and share multi-asset research reports — all through the Wealthink MCP connector. Persona lenses (public markets, private equity, venture, fund manager) adapt the vocabulary; the core mechanics are shared.",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "author": {
     "name": "Wealthink",
     "email": "support@thewealthink.com"
   },
   "homepage": "https://github.com/Wealthink/wealthink-plugin",
+  "repository": "https://github.com/Wealthink/wealthink-plugin",
   "license": "MIT",
+  "keywords": [
+    "finance",
+    "research",
+    "investment-research",
+    "market-news",
+    "reports",
+    "private-equity",
+    "public-markets",
+    "venture-capital"
+  ],
   "mcpServers": "./.mcp.json",
   "skills": [
     "./skills/core/",

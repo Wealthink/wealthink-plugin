@@ -7,9 +7,18 @@ research analyst actually works: browse the market news Wealthink tracks for you
 run qualitative and quantitative research, assemble multi-asset research reports,
 and share them with clients — all in plain conversation.
 
-It works in **Claude Code**, **Claude chat and Cowork (claude.ai)**, and **Claude
-Desktop**. The plugin is the same for everyone; what each workspace is allowed to
-do is decided by Wealthink on the backend (see [Plans & permissions](#plans--permissions)).
+It targets **agentic harnesses**: **Claude Code** and **Cowork (claude.ai)**,
+where Claude can spawn subagents and isolate large tool output. Plain chat is
+**not** a supported surface — Wealthink responses (a full `list_events`, a whole
+run output, a stitched report) routinely exceed what a chat UI will render.
+
+Other MCP clients (Cursor, VS Code, Codex, OpenCode, ChatGPT custom connectors)
+can connect to the Wealthink MCP server directly — see
+[`docs/connect.md`](../docs/connect.md) — and get the tools, but not the plugin's
+skills, agents or hooks.
+
+The plugin is the same for everyone; what each workspace is allowed to do is
+decided by Wealthink on the backend (see [Plans & permissions](#plans--permissions)).
 
 ---
 
@@ -31,8 +40,12 @@ The Wealthink connector authenticates with **OAuth**. There's no API key to past
 and no password to type into the chat.
 
 ```
-/mcp  →  select  wealthink  →  Authenticate
+/mcp  →  plugin:wealthink:mcp  →  Authenticate
 ```
+
+Installing the plugin registers the server for you; it appears in `/mcp` under the
+plugin's name, as **`plugin:wealthink:mcp`** — not as `wealthink`. (`claude mcp
+login plugin:wealthink:mcp` runs the same flow from a shell.)
 
 A browser window opens for Wealthink sign-in and consent. Approve it once; Claude
 caches the token in your system keychain and refreshes it automatically, so you
@@ -40,23 +53,19 @@ won't be asked again on this machine. To confirm you're connected, just ask Clau
 *"what's set up in my Wealthink workspace?"* — the `getting-started` skill verifies
 the connection and orients you.
 
-### claude.ai (chat / Cowork) and Claude Desktop
+### Cowork / claude.ai and Claude Desktop
 
-- **claude.ai** — open **Settings → Connectors**, add the **Wealthink** connector,
-  and authorise it (the same OAuth browser consent). Install the Wealthink
-  **Skills** from this repo's `skills/` folder via your workspace's Skills settings.
-- **Claude Desktop** — add the server to `claude_desktop_config.json`, then
-  approve the OAuth prompt on first use:
-  ```json
-  {
-    "mcpServers": {
-      "wealthink": { "type": "http", "url": "https://api.thewealthink.com/mcp" }
-    }
-  }
-  ```
+Open **Customize → Plugins** in the left sidebar, add this marketplace
+(`Wealthink/wealthink-plugin`), and install **Wealthink for agents**. That brings
+the connector *and* the skills across in one step — you do not need to copy
+anything by hand. Authorise the connector when prompted.
 
-> Self-hosting or local dev? See the Wealthink server repo for stdio mode and
-> pointing the connector at a local API.
+### Any other MCP client
+
+Cursor, VS Code, Codex, OpenCode and ChatGPT custom connectors can talk to the
+Wealthink MCP server directly. Configuration snippets and the one caveat that
+matters (tool names differ from the bundled path) are in
+[`docs/connect.md`](../docs/connect.md).
 
 ---
 
@@ -140,9 +149,14 @@ never references a lens. Adding a persona is additive — drop a folder under
 Workers run autonomously (they can't ask questions) and either fan out in parallel
 or digest a large payload so it never floods the conversation:
 
-- **`module-builder`** *(worker)* — builds one approved module spec, test-runs it, returns a summary. Fan out one per module.
+- **`module-builder`** *(worker)* — builds one approved module spec, test-runs it, returns a summary. **Creates only; never repairs.** Fan out one per module, concurrently — building them in sequence costs minutes each.
+- **`module-fixer`** *(worker)* — repairs one existing module against a **written acceptance spec**, within five edit→run cycles, then returns `fixed` or `blocked` with the exact unmet assertion. **Repairs only; never creates.**
 - **`run-verify`** *(worker)* — runs one module, verifies the output, recommends a `run_id`. **Recommends, never publishes.**
 - **`output-digest`** *(worker)* — absorbs a big run/report/`list_events` payload and returns a tight summary.
+
+Every worker carries a `maxTurns` cap and a `tools:` allowlist, so its scope is
+enforced rather than merely described. A builder cannot edit; a fixer cannot
+create; none of them can publish or archive.
 
 Orchestrators run an end-to-end flow by delegating to the core skills:
 
@@ -155,17 +169,82 @@ Orchestrators run an end-to-end flow by delegating to the core skills:
 Deterministic enforcement of guardrails that the skills already require in prose
 (so they hold in Cowork too). They are scoped to Wealthink tools only:
 
-- **Publish gate** — explicit confirmation before making a report run public (revoke passes through).
-- **Archive gate** — explicit confirmation before soft-deleting a module/template/config/event.
+- **Publish gate** — explicit confirmation before making a report run public. Only a
+  positively identified revoke passes through; an unrecognised payload asks.
+- **Removal gate** — explicit confirmation before archiving (soft-delete) or deleting
+  (hard) a module/template/config/event/data source. The prompt says which it is.
 - **Connection reminder** — a non-blocking reminder at session start to authenticate (OAuth) and never invent IDs.
 
-See `hooks/README.md`. The matchers assume the bundled connector is named
-`wealthink` (tool prefix `mcp__plugin_wealthink_mcp__`).
+See `hooks/README.md`. The matchers target the **bundled** connector's tool prefix,
+`mcp__plugin_wealthink_mcp__` (plugin name `wealthink` + server key `mcp`). If you
+configure Wealthink by hand in another client the tool names differ and these hooks
+do not fire — the skills' own confirmation rules are the guarantee there. See
+[`docs/connect.md`](../docs/connect.md).
 
 ### Commands (Claude Code)
 
 - **`/wealthink:wealthink <request>`** — universal natural-language entry point.
 - **`/wealthink:wealthink-status <run_id>`** — quick status check on a running job.
+
+---
+
+## Tool loading
+
+The connector is registered with **`alwaysLoad: true`**, so all its tool schemas
+load at session start instead of being discovered on demand.
+
+This is a trade-off, and it is deliberate. By default Claude Code defers MCP tool
+definitions and searches for them when needed — which is cheaper per session, but
+means every subagent re-discovers the same tools. Measured on a real session:
+**136 tool-search calls, with `run_quant_chart` re-selected 32 times.** Because
+those are turns and turn cost compounds, loading upfront wins for this connector.
+
+The cost: the schemas occupy context for the whole session, and startup blocks
+until the server connects (capped at 5s). If your sessions are short, or you run
+Wealthink alongside several other connectors, **remove the line** from
+`.mcp.json` — nothing else depends on it:
+
+```json
+{ "mcpServers": { "mcp": { "type": "http", "url": "https://api.thewealthink.com/mcp" } } }
+```
+
+Requires Claude Code v2.1.121 or later; earlier versions ignore the field.
+
+## Fewer permission prompts
+
+Each skill pre-approves the tools it needs via `allowed-tools`, but **that grant
+covers only the turn that invoked the skill** — it clears when you send your next
+message. In a long research session that means the reads start prompting again
+from your second message onward.
+
+For a smoother session, allow the read tools once at the session or project level.
+In Claude Code, run `/permissions` and add:
+
+```
+mcp__plugin_wealthink_mcp__list_*
+mcp__plugin_wealthink_mcp__get_*
+```
+
+Or in `.claude/settings.json`:
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "mcp__plugin_wealthink_mcp__list_*",
+      "mcp__plugin_wealthink_mcp__get_*"
+    ]
+  }
+}
+```
+
+**Allow reads, not writes.** Nothing in the plugin pre-approves
+`set_template_run_visibility`, `archive_*` or `delete_*` — those should always
+stop and ask, and the hooks below add a second confirmation on top. Adding them
+to an allow rule removes the only protection a non-Claude-Code client has.
+
+If you configured Wealthink manually rather than through the plugin, substitute
+your own server key — see [`docs/connect.md`](../docs/connect.md#tool-names-by-path).
 
 ---
 
@@ -190,9 +269,9 @@ sharing reports — is available to every workspace by default.
 
 ## Versioning
 
-Current release: **`0.0.1`** — initial pre-1.0 release. Bump `version` in
+Current release: **`0.1.0`** — pre-1.0. Bump `version` in
 `.claude-plugin/plugin.json` (and the matching entry in the repo-root
-`.claude-plugin/marketplace.json`) on each release:
+`.claude-plugin/marketplace.json` — CI fails if they drift) on each release:
 
 - Patch (`0.0.x`): wording/doc tweaks.
 - Minor (`0.x.0`): new skills/agents.
@@ -201,3 +280,22 @@ Current release: **`0.0.1`** — initial pre-1.0 release. Bump `version` in
 
 In Claude Code, run `/plugin` to update an installed plugin after a new version is
 published.
+
+## Contributing
+
+`ARCHITECTURE.md` is the design contract — read it before adding or changing a
+skill, agent, hook or command. The short version: skills own every workflow and
+all user interaction, agents do autonomous/parallel/large-payload work, hooks are
+deterministic backstops for rules that are *also* written into the skills, and
+lenses depend on core while core never references a lens.
+
+Before opening a PR:
+
+```bash
+python3 wealthink-plugin/hooks/tests/test_gates.py
+python3 .github/scripts/check_manifests.py
+claude plugin validate . --strict
+claude plugin validate ./wealthink-plugin --strict
+```
+
+CI runs the same four.
