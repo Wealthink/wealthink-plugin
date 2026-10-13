@@ -1,29 +1,26 @@
 #!/usr/bin/env python3
-"""Wealthink sign-in reminder — SessionStart backstop.
+"""Wealthink session reminder — SessionStart backstop.
 
-Injects a short, non-blocking reminder at session start so the agent checks for
-a signed-in Wealthink session before making Wealthink calls, and never invents
-resource IDs. This is the safe form of the "sign-in check" guardrail: it cannot
-false-positive against hosted connectors (which may authenticate at connect
-time), because it only injects context — it never blocks a tool call.
-
-The hard guarantee lives in the `getting-started` skill; this hook just keeps it
-top-of-mind in Claude Code.
+Injects a short, non-blocking reminder at session start: how to sign in, which
+connector tools this plugin uses (the same server also serves the desktop app's
+module/report tools, which should be ignored here), and the two quota rules.
+It only injects context — it never blocks a tool call.
 """
 import json
 
 
 def main() -> None:
     context = (
-        "Wealthink reminder: Wealthink MCP tools require an authenticated (OAuth) "
-        'connection. If any Wealthink tool reports "not connected" / "not '
-        'authenticated" / 401, use the getting-started skill: run /mcp and '
-        "Authenticate the Wealthink server — the bundled one is listed as "
-        "plugin:wealthink:mcp — before retrying (browser consent); "
-        "never ask the user for an email or password. Never invent module / "
-        "template / tag / config IDs — resolve them with the `list_*` discovery "
-        "tools first. Publishing a report (making a run public) and archiving a "
-        "resource are confirm-before-acting actions."
+        "Wealthink reminder: the Wealthink connector (plugin:wealthink:mcp) needs "
+        'OAuth. If a Wealthink tool reports "not connected" / 401, use the connect '
+        "skill (/mcp → plugin:wealthink:mcp → Authenticate); never ask for an email "
+        "or password. Wealthink is a coherence engine for Indian markets: for any "
+        "market question, use the market-context skill (coherence-engine has the "
+        "data model and tool reference), and ignore the connector's module / "
+        "template / report / data-source tools. Opening a story (get_pool_story) "
+        "can use one of the user's daily story opens, so list first and open "
+        "sparingly. run_pool_thesis_check exists only on paid plans and can use "
+        "one of the user's weekly checks: confirm before running it."
     )
 
     print(

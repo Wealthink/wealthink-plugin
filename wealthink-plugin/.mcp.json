@@ -2,8 +2,7 @@
   "mcpServers": {
     "mcp": {
       "type": "http",
-      "url": "https://api.thewealthink.com/mcp",
-      "alwaysLoad": true
+      "url": "https://api.thewealthink.com/mcp"
     }
   }
 }
