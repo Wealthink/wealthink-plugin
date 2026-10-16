@@ -1,7 +1,7 @@
 # Wealthink for agents
 
 Understand Indian markets with Wealthink from inside your agent. Wealthink is a
-**coherence engine**, not a search engine: it reads the last 24–72 hours of
+**coherence engine**, not a search engine: it reads recent
 financial news and links it into one map. Each story is tied to its causes and
 consequences, labelled with the sectors, macro drivers, categories and
 companies it moves, and mapped to its **knock-on** effects on other sectors.
@@ -59,10 +59,14 @@ tools and tells the agent to ignore the rest:
 | | Core (on every server today) | Extended (newer servers; used when listed) |
 |---|---|---|
 | Pulse | `get_pool_pulse` | `get_news_pulse`, `get_news_pulse_graph` |
-| Find stories | `list_pool_stories`, `list_pool_company_stories`, `list_pool_tags` | `list_news_stories`, `search_news_companies`, `list_latest_news` |
+| Find stories | `list_pool_stories`, `list_pool_company_stories` | `list_news_stories`, `search_news_companies`, `list_latest_news` |
+| Research | `list_pool_driver_moves`, `list_pool_knockons`, `get_pool_story_timeline` | |
 | Read stories | `get_pool_story`, `get_pool_article` | `get_news_story` |
 | Thesis Check (paid) | `run_pool_thesis_check`, `list_pool_thesis_checks`, `get_pool_thesis_check` | `validate_my_thesis_statement` |
-| Plan and filters | | `get_my_usage`, `get_my_thesis_config`, `list_public_plans` |
+| Plan and invites | `get_my_usage`, `get_my_referral` | `get_my_thesis_config`, `list_public_plans` |
+
+Filters take exact values (listed in each tool's parameters); `list_pool_tags`
+and `get_pool_feed` are desktop-app tools and are not listed to this plugin.
 
 The skills use bare tool names, so they work with any client's prefix.
 

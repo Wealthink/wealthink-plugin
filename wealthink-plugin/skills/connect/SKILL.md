@@ -12,7 +12,7 @@ license: MIT
 metadata:
   author: wealthink
   version: "0.3.0"
-allowed-tools: mcp__plugin_wealthink_mcp__get_pool_pulse mcp__plugin_wealthink_mcp__list_pool_tags
+allowed-tools: mcp__plugin_wealthink_mcp__get_pool_pulse mcp__plugin_wealthink_mcp__get_my_usage
 ---
 
 # Connect to Wealthink
@@ -64,7 +64,8 @@ system prompt instead.
 ## 3. Verify
 
 Call `get_pool_pulse`. A response with `as_of` and `stories_24h` means the
-connection works. Then tell the user what's live, in one line:
+connection works; `get_my_usage` tells you the plan (`plan_name`) and how far
+back it reaches. Then tell the user what's live, in one line:
 
 ```
 Connected to Wealthink. 253 stories in the last 24 h (to 07 Oct 17:57 IST).
@@ -93,5 +94,7 @@ Then offer the starting points:
   look them up by name (e.g. `get_pool_story`).
 - **402 / plan_required**: this isn't a connection problem. The plan doesn't
   cover that window or feature.
-- **Many unrelated tools listed** (modules, templates, reports): the same server
-  serves the Wealthink desktop app. Ignore them for news work.
+- **Many unrelated tools listed** (modules, templates, reports): on paid plans
+  the same server serves the Wealthink desktop app. Ignore them for news work.
+- **A tool refused with `DESKTOP_APP_ONLY`**: it builds research modules and is
+  only for the Wealthink desktop app. Use the news tools instead.

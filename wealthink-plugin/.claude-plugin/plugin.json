@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "wealthink",
   "displayName": "Wealthink for agents",
-  "description": "Understand Indian markets with Wealthink, a coherence engine that links the last 24–72 hours of financial news into one map: what's moving markets today, how the stories behind a company, sector, macro driver or portfolio connect, why something happened and what followed, and what supports or challenges your view. Includes the MCP connection setup guide.",
+  "description": "Understand Indian markets with Wealthink, a coherence engine that links recent Indian financial news into one map: what's moving markets today, how the stories behind a company, sector, macro driver or portfolio connect, why something happened and what followed, and what supports or challenges your view. Includes the MCP connection setup guide.",
   "version": "0.3.0",
   "author": {
     "name": "Wealthink",

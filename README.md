@@ -3,7 +3,7 @@
 Understand Indian markets with Wealthink from your AI agent, over MCP.
 
 **Wealthink for agents** reads Wealthink's coherence engine, a connected map of
-the last 24–72 hours of news:
+recent news:
 stories linked to their causes and consequences, tagged with the sectors, macro
 drivers and companies they move, and their knock-on effects. Ask what's moving
 markets, what's happening to a company or sector and why, or whether the news
