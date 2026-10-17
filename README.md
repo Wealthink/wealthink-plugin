@@ -13,11 +13,12 @@ search.
 ## Install (Claude Code)
 
 ```bash
-/plugin marketplace add Wealthink/wealthink-plugin
-/plugin install wealthink@wealthink
+claude plugin marketplace add Wealthink/wealthink-plugin
+claude plugin install wealthink@wealthink
 ```
 
-Then connect: run `/mcp`, choose **`plugin:wealthink:mcp`**, then **Authenticate**.
+Restart Claude Code, then connect: run `/mcp`, choose **`plugin:wealthink:mcp`**,
+then **Authenticate**.
 OAuth opens in your browser; there is no token to copy.
 
 Cowork and claude.ai install it the same way, from **Customize → Plugins**.
@@ -34,6 +35,7 @@ npx skills add Wealthink/wealthink-plugin
 
 Then connect the MCP server (`https://api.thewealthink.com/mcp`, OAuth) in that
 agent. [`docs/connect.md`](./docs/connect.md) has a snippet for each client.
+Or paste the one setup prompt from [`docs/connect.md`](./docs/connect.md) into any agent.
 Agents without skills support (e.g. ChatGPT) can use
 [`docs/agent-instructions.md`](./docs/agent-instructions.md) as a system prompt.
 

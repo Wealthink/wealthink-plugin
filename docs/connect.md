@@ -1,8 +1,26 @@
 # Connect Wealthink to your agent
 
-The Wealthink platform is exposed as a remote **MCP server**. Any MCP-capable
-agent can connect to it. This page is the canonical set of connection facts plus
-a config snippet per client.
+Wealthink is a remote **MCP server**. Any MCP-capable agent can connect to it.
+This page has the connection facts and the setup for each client. The
+[`connect` skill](../wealthink-plugin/skills/connect/SKILL.md) has the same
+steps written for an agent to follow.
+
+## The fastest way: paste one prompt
+
+Paste this into your agent (Claude Code, Codex, Cursor, Gemini CLI, Claude.ai,
+ChatGPT…). It sets up what it can and tells you the rest:
+
+```text
+Set up Wealthink for me. Wealthink links Indian market news into connected stories and is used through MCP.
+
+1. Read the setup guide and follow the steps for the agent you are:
+   https://raw.githubusercontent.com/Wealthink/wealthink-plugin/main/wealthink-plugin/skills/connect/SKILL.md
+2. Add the Wealthink MCP server (https://api.thewealthink.com/mcp, OAuth) and install the Wealthink skills if you support skills.
+3. I sign in to Wealthink in my browser. Never ask me for an email, password or token.
+4. When it's connected, call get_my_usage and get_pool_pulse and tell me in two lines what my plan includes and what's moving Indian markets today.
+
+If you can't install things yourself (for example in a chat app), tell me exactly what to click instead.
+```
 
 ## The connection
 
@@ -10,87 +28,60 @@ a config snippet per client.
 |---|---|
 | **Endpoint** | `https://api.thewealthink.com/mcp` |
 | **Transport** | `http` (streamable HTTP) |
-| **Auth** | OAuth 2.0 — browser consent, no API key, no password |
-| **Scope** | Your own workspace only |
+| **Auth** | OAuth 2.0: browser sign-in and consent, no API key, no password |
+| **Scope** | Your own account only |
+| **Tools you see** | Your plan's: 10 on Free, 13 on Starter (adds Thesis Check). Pro and above see the desktop app's tools too |
 
-There is **nothing to paste**. Every client below opens a browser for Wealthink
-sign-in and consent on first use, then caches and refreshes the token itself.
-Wealthink never authenticates through the chat: if an agent asks you to type an
-email or password, something is wrong.
+There is **nothing to paste** for sign-in. Every client below opens a browser
+for Wealthink sign-in on first use, then stores and refreshes the token itself.
+If an agent asks you to type an email or password, something is wrong.
+
+This plugin is for the **Free and Starter** plans. On Pro and above, use the
+Wealthink desktop app, which ships its own plugin.
 
 ---
 
-## Claude Code — install the plugin (recommended)
+## Claude Code: install the plugin (recommended)
 
-This is the only path that ships the skills and the thesis-check hook, not just
-the tools.
+The only path that brings the skills, the `/wealthink` command and the
+Thesis Check hook along with the tools.
 
 ```bash
-/plugin marketplace add Wealthink/wealthink-plugin
-/plugin install wealthink@wealthink
+claude plugin marketplace add Wealthink/wealthink-plugin
+claude plugin install wealthink@wealthink
 ```
 
-Installing registers the MCP server automatically. Authorise it:
+(or `/plugin marketplace add Wealthink/wealthink-plugin` and
+`/plugin install wealthink@wealthink` inside Claude Code). Restart Claude Code
+(`claude --continue` keeps your conversation), then:
 
 ```
 /mcp  →  plugin:wealthink:mcp  →  Authenticate
 ```
 
-or from a shell, `claude mcp login plugin:wealthink:mcp`.
-
-> The server is listed as **`plugin:wealthink:mcp`**, not `wealthink` — plugin
-> servers are namespaced by their plugin. Its tools are named
+> The server is listed as **`plugin:wealthink:mcp`**, not `wealthink`: plugin
+> servers are named after their plugin. Its tools are
 > `mcp__plugin_wealthink_mcp__<tool>`.
 
-## Cowork / claude.ai / Claude Desktop — install the plugin
+To update later: `claude plugin marketplace update wealthink`, then
+`claude plugin update wealthink@wealthink`, then restart.
 
-Left sidebar → **Customize** → **Plugins** → add the `Wealthink/wealthink-plugin`
-marketplace → install **Wealthink for agents**. The connector and the skills arrive
-together; authorise the connector when prompted.
+## Claude.ai / Claude Desktop / Cowork: install the plugin
 
-If you only want the connector, add **Wealthink** under **Settings → Connectors**
-instead.
+**Customize** → **Plugins** → add the `Wealthink/wealthink-plugin` marketplace →
+install **Wealthink for agents**. The connector and the skills arrive together;
+authorise the connector when asked.
+
+For the tools without the skills: **Settings → Connectors → Add custom
+connector** with the endpoint.
 
 ---
 
 ## Other MCP clients
 
-These get every Wealthink tool, including the desktop app's module and report
-tools. Add the skills with [Skills for any agent](#skills-for-any-agent). The
-Claude Code hook doesn't come with them; see [What you give up](#what-you-give-up).
-
-Use `wealthink` as the server key everywhere, so tool names are consistent
-(`mcp__wealthink__get_pool_story`) and anything you write against them is portable.
-
-**Cursor** — `.cursor/mcp.json` (or Settings → MCP):
-
-```json
-{
-  "mcpServers": {
-    "wealthink": { "type": "http", "url": "https://api.thewealthink.com/mcp" }
-  }
-}
-```
-
-**Claude Desktop** — `claude_desktop_config.json`, same shape:
-
-```json
-{
-  "mcpServers": {
-    "wealthink": { "type": "http", "url": "https://api.thewealthink.com/mcp" }
-  }
-}
-```
-
-**VS Code** — `.vscode/mcp.json`:
-
-```json
-{
-  "servers": {
-    "wealthink": { "type": "http", "url": "https://api.thewealthink.com/mcp" }
-  }
-}
-```
+Use **`wealthink`** as the server name everywhere, so tool names are
+predictable (`mcp__wealthink__get_pool_story`). Then add the skills with
+[Skills for any agent](#skills-for-any-agent).
 
 **Codex CLI**:
 
@@ -99,27 +90,35 @@ codex mcp add wealthink --url https://api.thewealthink.com/mcp
 codex mcp login wealthink
 ```
 
-**Gemini CLI**: `~/.gemini/settings.json`, then run `/mcp auth wealthink`:
+**Cursor**: `~/.cursor/mcp.json` (or Settings → MCP), then **Connect**:
 
 ```json
-{
-  "mcpServers": {
-    "wealthink": { "httpUrl": "https://api.thewealthink.com/mcp", "oauth": { "enabled": true } }
-  }
-}
+{ "mcpServers": { "wealthink": { "url": "https://api.thewealthink.com/mcp" } } }
 ```
 
-**OpenCode and other config-file clients**: add a remote HTTP MCP server named
-`wealthink` that points at `https://api.thewealthink.com/mcp`. Check your
-client's MCP docs for the exact file.
+**Gemini CLI**: `~/.gemini/settings.json`, then `/mcp auth wealthink`:
 
-**ChatGPT**: go to Settings → Apps & Connectors → Advanced and turn on **Developer
-mode** (paid ChatGPT plans). Then add a connector with the endpoint URL and OAuth
-authentication. ChatGPT can't load skills, so paste
-[`agent-instructions.md`](./agent-instructions.md) into your custom
-instructions or project.
+```json
+{ "mcpServers": { "wealthink": { "httpUrl": "https://api.thewealthink.com/mcp", "oauth": { "enabled": true } } } }
+```
 
-**Claude Code without the plugin** — if you want the tools but not the plugin:
+**VS Code (Copilot)**: `.vscode/mcp.json`:
+
+```json
+{ "servers": { "wealthink": { "type": "http", "url": "https://api.thewealthink.com/mcp" } } }
+```
+
+**OpenCode and other config-file clients**: add a remote HTTP MCP server
+named `wealthink` at `https://api.thewealthink.com/mcp`. Your client's MCP docs
+have the file.
+
+**ChatGPT**: Settings → Apps & Connectors → Advanced → turn on **Developer
+mode** (paid ChatGPT plans), then add a connector with the endpoint and OAuth.
+ChatGPT can't load skills, so paste
+[`agent-instructions.md`](./agent-instructions.md) into your project's
+instructions or custom instructions.
+
+**Claude Code without the plugin** (tools only):
 
 ```bash
 claude mcp add --transport http wealthink https://api.thewealthink.com/mcp
@@ -128,149 +127,60 @@ claude mcp add --transport http wealthink https://api.thewealthink.com/mcp
 ## Skills for any agent
 
 The skills in `wealthink-plugin/skills/` follow the open
-[Agent Skills](https://agentskills.io) standard (`SKILL.md` folders). Codex,
-Cursor, Gemini CLI, OpenCode, GitHub Copilot / VS Code, Goose, Amp, Roo Code
-and other skills-compatible agents can load them:
+[Agent Skills](https://agentskills.io) standard (`SKILL.md` folders), so Codex,
+Cursor, Gemini CLI, OpenCode, GitHub Copilot, Goose, Amp and other
+skills-compatible agents can load them:
 
 ```bash
-npx skills add Wealthink/wealthink-plugin                 # choose agents interactively
-npx skills add Wealthink/wealthink-plugin -a codex -g     # one agent, user-wide
+npx skills add Wealthink/wealthink-plugin                       # choose agents interactively
+npx skills add Wealthink/wealthink-plugin -a codex -g -y        # one agent, user-wide
 ```
 
-You can also copy the skill folders into your agent's skills directory. The
-skills use bare tool names (`get_pool_story`), so they work whatever prefix your
-client adds. Agents without skills support can use
-[`agent-instructions.md`](./agent-instructions.md) as a system prompt.
+Or copy the skill folders into your agent's skills directory. The skills use
+bare tool names (`get_pool_story`), so they work with any prefix. Agents
+without skills support can use [`agent-instructions.md`](./agent-instructions.md)
+as a system prompt.
 
 ---
 
-## What you give up
+## What you give up outside the Claude Code plugin
 
-Outside the bundled-plugin path, three things don't come with you:
-
-1. **The skills**, unless you install them as above. They teach the agent how to read the news engine: list
-   before opening (story opens are metered), follow `follows` / `followed_by`
-   links, separate knock-ons (Wealthink's reasoning) from article claims, and
-   cite every source. Without them the agent picks freely among every tool on
-   the server, including the desktop app's module and report tools.
-2. **The thesis-check hook.** It matches the bundled prefix
-   `mcp__plugin_wealthink_mcp__run_pool_thesis_check`. A hand-configured server
-   produces `mcp__wealthink__…`, which matches nothing, so **nothing asks
-   before a Thesis Check uses one of your weekly checks.** Confirm it yourself.
-3. **The `allowed-tools` pre-approvals** in each skill, for the same reason.
-   Every call falls back to your client's normal permission behaviour.
-
-## Optional: hide the tools this plugin doesn't use (Claude Code)
-
-The Wealthink server also serves the desktop app, so it lists about 88 tools; the
-plugin uses 19. A plugin can't ship permission rules, but you can hide the rest
-yourself. In Claude Code, a bare-name **deny** rule removes a tool from the
-model's context and from tool search entirely. Add this to
-`~/.claude/settings.json` (all projects) or `.claude/settings.json` (one project):
-
-```json
-{
-  "permissions": {
-    "deny": [
-      "mcp__plugin_wealthink_mcp__archive_event",
-      "mcp__plugin_wealthink_mcp__archive_qual_module",
-      "mcp__plugin_wealthink_mcp__archive_quant_config",
-      "mcp__plugin_wealthink_mcp__archive_template",
-      "mcp__plugin_wealthink_mcp__cancel_qual_run",
-      "mcp__plugin_wealthink_mcp__create_qual_data_source",
-      "mcp__plugin_wealthink_mcp__create_qual_module",
-      "mcp__plugin_wealthink_mcp__create_quant_config",
-      "mcp__plugin_wealthink_mcp__create_tag",
-      "mcp__plugin_wealthink_mcp__create_template",
-      "mcp__plugin_wealthink_mcp__create_user_module",
-      "mcp__plugin_wealthink_mcp__delete_qual_data_source",
-      "mcp__plugin_wealthink_mcp__fetch_raw_datasource_payload",
-      "mcp__plugin_wealthink_mcp__get_billing_summary",
-      "mcp__plugin_wealthink_mcp__get_connector",
-      "mcp__plugin_wealthink_mcp__get_data_source_endpoints",
-      "mcp__plugin_wealthink_mcp__get_event",
-      "mcp__plugin_wealthink_mcp__get_expiry_dates",
-      "mcp__plugin_wealthink_mcp__get_health",
-      "mcp__plugin_wealthink_mcp__get_org_usage",
-      "mcp__plugin_wealthink_mcp__get_pool_article_trace",
-      "mcp__plugin_wealthink_mcp__get_pool_feed",
-      "mcp__plugin_wealthink_mcp__get_pool_thesis_check_trace",
-      "mcp__plugin_wealthink_mcp__get_public_template_run",
-      "mcp__plugin_wealthink_mcp__get_qual_run_status",
-      "mcp__plugin_wealthink_mcp__get_quant_config",
-      "mcp__plugin_wealthink_mcp__get_quant_result",
-      "mcp__plugin_wealthink_mcp__get_tag",
-      "mcp__plugin_wealthink_mcp__get_template_by_id",
-      "mcp__plugin_wealthink_mcp__get_template_report_by_run_id",
-      "mcp__plugin_wealthink_mcp__get_template_run_status",
-      "mcp__plugin_wealthink_mcp__get_user_module",
-      "mcp__plugin_wealthink_mcp__list_all_modules",
-      "mcp__plugin_wealthink_mcp__list_connectors",
-      "mcp__plugin_wealthink_mcp__list_data_sources",
-      "mcp__plugin_wealthink_mcp__list_events",
-      "mcp__plugin_wealthink_mcp__list_module_options",
-      "mcp__plugin_wealthink_mcp__list_pool_dropped_headlines",
-      "mcp__plugin_wealthink_mcp__list_qual_data_sources",
-      "mcp__plugin_wealthink_mcp__list_qual_modules",
-      "mcp__plugin_wealthink_mcp__list_qual_results",
-      "mcp__plugin_wealthink_mcp__list_quant_chart_types",
-      "mcp__plugin_wealthink_mcp__list_quant_configs",
-      "mcp__plugin_wealthink_mcp__list_tags",
-      "mcp__plugin_wealthink_mcp__list_template_reports",
-      "mcp__plugin_wealthink_mcp__list_templates",
-      "mcp__plugin_wealthink_mcp__list_user_modules",
-      "mcp__plugin_wealthink_mcp__lookup_data_source_field",
-      "mcp__plugin_wealthink_mcp__publish_qual_result",
-      "mcp__plugin_wealthink_mcp__publish_user_module_result",
-      "mcp__plugin_wealthink_mcp__push_user_module_result",
-      "mcp__plugin_wealthink_mcp__run_module",
-      "mcp__plugin_wealthink_mcp__run_qual_stream",
-      "mcp__plugin_wealthink_mcp__run_quant_chart",
-      "mcp__plugin_wealthink_mcp__run_quant_module",
-      "mcp__plugin_wealthink_mcp__run_template",
-      "mcp__plugin_wealthink_mcp__set_event_approval",
-      "mcp__plugin_wealthink_mcp__set_template_run_visibility",
-      "mcp__plugin_wealthink_mcp__test_run_qual",
-      "mcp__plugin_wealthink_mcp__test_run_qual_stream",
-      "mcp__plugin_wealthink_mcp__test_run_quant",
-      "mcp__plugin_wealthink_mcp__test_run_quant_stream",
-      "mcp__plugin_wealthink_mcp__update_event",
-      "mcp__plugin_wealthink_mcp__update_qual_data_source",
-      "mcp__plugin_wealthink_mcp__update_qual_module",
-      "mcp__plugin_wealthink_mcp__update_qual_result",
-      "mcp__plugin_wealthink_mcp__update_quant_config",
-      "mcp__plugin_wealthink_mcp__update_tag",
-      "mcp__plugin_wealthink_mcp__update_template"
-    ]
-  }
-}
-```
-
-Skip this if you also use Wealthink modules, templates or reports from Claude
-Code: it hides them too. The list matches the server as of 2026-10-07. A tool
-added to the server later isn't hidden until you add it here.
+1. **The skills**, unless you install them as above. They teach the agent to
+   list before opening (story opens are metered on Free), follow story links,
+   keep knock-ons (Wealthink's reasoning) apart from article claims, and cite
+   every story. The server's own instructions cover the basics without them.
+2. **The Thesis Check hook.** It matches the plugin's tool name,
+   `mcp__plugin_wealthink_mcp__run_pool_thesis_check`. A hand-configured
+   server produces `mcp__wealthink__…`, so nothing extra asks before a Thesis
+   Check uses one of your weekly checks. The skill and the server instructions
+   still tell the agent to confirm first.
+3. **The skills' `allowed-tools` pre-approvals**, for the same reason. Calls
+   fall back to your client's normal permission prompts.
 
 ## Tool names by path
 
 | How you connected | Tool name |
 |---|---|
 | Plugin (Claude Code / Cowork) | `mcp__plugin_wealthink_mcp__get_pool_story` |
-| Manual config, key `wealthink` | `mcp__wealthink__get_pool_story` |
-| Manual config, key `<other>` | `mcp__<other>__get_pool_story` |
+| Manual config, name `wealthink` | `mcp__wealthink__get_pool_story` |
+| Manual config, name `<other>` | `mcp__<other>__get_pool_story` |
 
-This matters whenever you write a permission rule, a hook matcher, or a skill's
-`allowed-tools`: they must name the form your setup actually produces.
+This matters whenever you write a permission rule, a hook matcher or a skill's
+`allowed-tools`: name the form your setup produces.
 
 ## Troubleshooting
 
-- **No Wealthink server in the list.** The connector isn't registered. On Claude
-  Code, check `/plugin` shows **wealthink** installed and enabled, then retry
-  `/mcp`. Don't diagnose from the label — the bundled server is called
-  `plugin:wealthink:mcp`.
-- **401 / "not authenticated".** Re-run the authorise step for your client. Claude
+- **No Wealthink server listed.** The connector isn't registered. In Claude
+  Code, check `claude plugin list` shows **wealthink@wealthink** enabled, restart,
+  then retry `/mcp`. The plugin's server is called `plugin:wealthink:mcp`.
+- **401 / "not authenticated".** Re-run your client's sign-in step. Claude
   Code flags the server in `/mcp`; its menu offers **Re-authenticate**.
-- **402.** Not a connector error: your plan doesn't cover that time window or
-  feature. The error names the plan that does.
-- **Many unrelated tools listed** (modules, templates, reports). The same server
-  serves the Wealthink desktop app. Ignore them; the plugin's skills use only
-  the news tools.
+- **402 `PLAN_REQUIRED`.** Not a connection error: your plan doesn't include
+  that window or tool. The message names the plan that does.
+- **429 `PLAN_LIMIT_REACHED`.** A daily or weekly limit is used up; it resets
+  at `resets_at`.
+- **403 `DESKTOP_APP_ONLY`.** That tool is for building research modules in the
+  desktop app.
+- **Module, template or report tools listed.** Your account is on Pro or
+  above, where the server also serves the desktop app. Use the desktop app, or
+  ignore them; the skills use only the news tools.

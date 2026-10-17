@@ -11,7 +11,7 @@ compatibility: Requires the Wealthink MCP server (https://api.thewealthink.com/m
 license: MIT
 metadata:
   author: wealthink
-  version: "0.3.0"
+  version: "0.4.0"
 allowed-tools: mcp__plugin_wealthink_mcp__list_pool_stories mcp__plugin_wealthink_mcp__list_pool_company_stories mcp__plugin_wealthink_mcp__list_pool_driver_moves mcp__plugin_wealthink_mcp__list_pool_knockons mcp__plugin_wealthink_mcp__get_pool_story_timeline mcp__plugin_wealthink_mcp__get_pool_story mcp__plugin_wealthink_mcp__get_pool_article mcp__plugin_wealthink_mcp__get_pool_pulse mcp__plugin_wealthink_mcp__get_my_usage
 ---
 

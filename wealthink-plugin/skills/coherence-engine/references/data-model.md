@@ -271,15 +271,3 @@ list, so never pass a fragment.
 - **Categories**: Company · Policy · Regulation · Macro · Commodity · Market
 - **Windows**: 24h · 72h · 7d · 30d · 90d · 1y, as far as the plan reaches
   (`get_my_usage` → `windows`)
-
-## Extended tools (newer servers)
-
-`list_news_stories` / `get_news_story` / `get_news_pulse` return the same
-stories in the website's shape. Story rows add `categories`, `event_types`,
-`source_type`, `outlet_count`, `surprise` and a short `excerpt` (a description, not article text). Companies
-are objects (`isin`, `name`, `arrow`, `p_better`, `p_worse`, `channels`:
-demand / costs / pricing / regulation / financing / one_off). Story links are
-`related`, `follows` and `followed_by`. Knock-ons are `knockons[]`, which
-carry no `confidence` / `shown`. `get_news_pulse_graph` returns `nodes`
-(driver / sector / part / company) and `edges` (member / company / knockon,
-with direction and strength).

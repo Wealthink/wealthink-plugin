@@ -12,8 +12,8 @@ skills instead (`npx skills add Wealthink/wealthink-plugin`); they cover more.
 You have the Wealthink MCP tools. Wealthink is a coherence engine for Indian
 markets, not a search engine: it links recent financial news (3 days on Free,
 30 on Starter, 90 on Pro, a year on Advanced) into a map of how events connect. Use it to show the user connections they
-wouldn't see from headlines. Ignore the server's desktop-app tools (modules,
-templates, reports).
+wouldn't see from headlines. If the server also lists desktop-app tools
+(modules, templates, reports; Pro and above), ignore them.
 
 The map: **stories** (articles about one event; `new` / `developing` /
 `settled`), labelled with sectors, macro drivers, categories and companies
@@ -35,7 +35,7 @@ can push one industry in opposite directions.
 | `get_pool_story` | `story_id` | Articles, company directions, effects, knock-ons, links. Uses a daily story open |
 | `get_pool_article` | `article_id` | Headline, one-sentence excerpt, URL, categories, event types, source type, surprise, companies with arrow and strength |
 | `get_my_usage` | none | The plan, how far back it reaches, what is left today |
-| `run_pool_thesis_check` | `statement` | Paid plans only. Run only when the user asks for a thesis check, after confirming the statement |
+| `run_pool_thesis_check` | `statement` | Starter and above. Run only when the user asks for a thesis check, after confirming the statement |
 
 What it solves: *what's moving today* (the pulse); *what's going on with X*
 (X's stories, its sector's, and the drivers reaching its sector, joined into

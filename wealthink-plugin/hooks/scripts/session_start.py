@@ -16,11 +16,12 @@ def main() -> None:
         "skill (/mcp → plugin:wealthink:mcp → Authenticate); never ask for an email "
         "or password. Wealthink is a coherence engine for Indian markets: for any "
         "market question, use the market-context skill (coherence-engine has the "
-        "data model and tool reference), and ignore the connector's module / "
-        "template / report / data-source tools. Opening a story (get_pool_story) "
-        "can use one of the user's daily story opens, so list first and open "
-        "sparingly. run_pool_thesis_check exists only on paid plans and can use "
-        "one of the user's weekly checks: confirm before running it."
+        "data model and tool reference). If the connector also lists module / "
+        "template / report / data-source tools (Pro and above), ignore them. "
+        "Opening a story (get_pool_story) can use one of the user's daily story "
+        "opens, so list first and open sparingly. run_pool_thesis_check is on "
+        "Starter and above and can use one of the user's weekly checks: confirm "
+        "before running it."
     )
 
     print(

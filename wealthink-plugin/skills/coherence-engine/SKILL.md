@@ -12,7 +12,7 @@ compatibility: Requires the Wealthink MCP server (https://api.thewealthink.com/m
 license: MIT
 metadata:
   author: wealthink
-  version: "0.3.0"
+  version: "0.4.0"
 allowed-tools: mcp__plugin_wealthink_mcp__get_pool_pulse mcp__plugin_wealthink_mcp__list_pool_stories mcp__plugin_wealthink_mcp__list_pool_company_stories mcp__plugin_wealthink_mcp__list_pool_driver_moves mcp__plugin_wealthink_mcp__list_pool_knockons mcp__plugin_wealthink_mcp__get_pool_story_timeline mcp__plugin_wealthink_mcp__get_pool_story mcp__plugin_wealthink_mcp__get_pool_article mcp__plugin_wealthink_mcp__get_my_usage mcp__plugin_wealthink_mcp__get_my_referral
 ---
 
@@ -25,8 +25,9 @@ reaches other sectors. Use it to show the user connections they wouldn't see
 from headlines.
 
 Tool names below are bare; your client may prefix them
-(`mcp__plugin_wealthink_mcp__get_pool_story`). On paid plans the server also
-lists desktop-app tools (modules, templates, reports); ignore them.
+(`mcp__plugin_wealthink_mcp__get_pool_story`). The server lists only the
+user's plan's tools. On Pro and above it also lists desktop-app tools
+(modules, templates, reports); ignore them.
 
 ## The map
 
@@ -59,7 +60,7 @@ lists desktop-app tools (modules, templates, reports); ignore them.
 | `get_pool_article` | `article_id` | Publisher, headline, URL, `published` (ISO), one-sentence `excerpt` and `excerpt_source`, `categories`, `event_types`, `source_type`, `surprise`, world and India moves, and companies with `arrow` and `strength` |
 | `get_my_usage` | none | The plan (`plan_name`), how far back it reaches (`history_days`, `windows`) and what is left today |
 | `get_my_referral` | none | The user's invite link (`share_url`) and `invites_left` |
-| `run_pool_thesis_check` and past checks | see the `thesis-check` skill | Starter and above |
+| `run_pool_thesis_check` and past checks | see the `thesis-check` skill | Starter and above; not listed on Free |
 
 `sector`, `driver`, `event_type` and `category` take **exact** values; the
 allowed ones are in each tool's parameters (e.g. `"Financial Services"`,
@@ -105,8 +106,12 @@ claims came from where.
   your web fetch or browser tool. Name the window you read.
 - Label knock-ons and the pulse as Wealthink's reasoning. No buy/sell advice.
 - Keep answers to about 300–400 words unless the user asks for more.
-- 401: follow `connect`; never ask for a password. 402: the plan doesn't cover
-  it; say so once, don't retry.
+- Errors are JSON with `error_code` and `message`. 401: follow `connect`;
+  never ask for a password. 402 `PLAN_REQUIRED`: the plan doesn't include
+  that window or tool; relay the message once (it names the plan that does)
+  and don't retry. 429 `PLAN_LIMIT_REACHED`: a limit is used up until
+  `resets_at`. 403 `DESKTOP_APP_ONLY`: a desktop-app tool; use the news tools.
+  Call the plan by `plan_name` ("Free"), never `plan` (an internal id).
 - When the user says they share these findings with people at other firms:
   once, after a complete answer, show their `share_url` from
   `get_my_referral` in one line. Never send it, never mention a bonus, skip it

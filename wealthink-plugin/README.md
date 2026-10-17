@@ -10,19 +10,22 @@ returns, and to turn any market question into a connected answer: what is
 happening, why, how it reaches you, what supports and challenges your view,
 and what to watch next. It uses the agent's own web search to fill the gaps.
 
-> Building research modules and reports has moved to the **Wealthink desktop
-> app**. This plugin is for understanding the news.
+> This plugin is for the **Free and Starter** plans. Building research modules
+> and reports, and the Pro plans, live in the **Wealthink desktop app**, which
+> ships its own plugin.
 
 ## Install
 
 **Claude Code**
 
 ```bash
-/plugin marketplace add Wealthink/wealthink-plugin
-/plugin install wealthink@wealthink
+claude plugin marketplace add Wealthink/wealthink-plugin
+claude plugin install wealthink@wealthink
 ```
 
-Then connect: run `/mcp`, choose **`plugin:wealthink:mcp`**, then **Authenticate**.
+(or `/plugin marketplace add …` and `/plugin install …` inside Claude Code).
+Restart Claude Code, then connect: run `/mcp`, choose
+**`plugin:wealthink:mcp`**, then **Authenticate**.
 OAuth opens in your browser; there is no token to copy and no password to type.
 
 **Claude Desktop / claude.ai / Cowork**: go to **Customize → Plugins**, add the
@@ -41,7 +44,7 @@ are plain [Agent Skills](https://agentskills.io), so install them with
 | "What's moving the market today?" · "Pre-market brief" | `market-pulse` |
 | "What's going on with HDFC Bank?" · "How is crude affecting paints?" · "Is my case for cement intact?" · "Brief me on my portfolio" | `market-context` |
 | "Why did the RBI hold?" · "What came of the steel duty story?" | `trace-story` |
-| "Run a thesis check on …" (paid plans) | `thesis-check` |
+| "Run a thesis check on …" (Starter) | `thesis-check` |
 | "How do I connect?" | `connect` |
 | Anything else about the markets | `/wealthink <your question>` |
 
@@ -52,32 +55,34 @@ tool's parameters and returns. Real payload samples are in
 
 ## Tools used
 
-The Wealthink MCP server also serves the desktop app, so it exposes many tools
-(modules, templates, reports, data sources). This plugin uses only the news
-tools and tells the agent to ignore the rest:
+The server lists each plan's own tools, and this plugin uses all of them:
 
-| | Core (on every server today) | Extended (newer servers; used when listed) |
+| | Free | Starter |
 |---|---|---|
-| Pulse | `get_pool_pulse` | `get_news_pulse`, `get_news_pulse_graph` |
-| Find stories | `list_pool_stories`, `list_pool_company_stories` | `list_news_stories`, `search_news_companies`, `list_latest_news` |
-| Research | `list_pool_driver_moves`, `list_pool_knockons`, `get_pool_story_timeline` | |
-| Read stories | `get_pool_story`, `get_pool_article` | `get_news_story` |
-| Thesis Check (paid) | `run_pool_thesis_check`, `list_pool_thesis_checks`, `get_pool_thesis_check` | `validate_my_thesis_statement` |
-| Plan and invites | `get_my_usage`, `get_my_referral` | `get_my_thesis_config`, `list_public_plans` |
+| Pulse | `get_pool_pulse` | same |
+| Find stories | `list_pool_stories`, `list_pool_company_stories` | same |
+| Research | `list_pool_driver_moves`, `list_pool_knockons`, `get_pool_story_timeline` | same |
+| Read stories | `get_pool_story`, `get_pool_article` | same |
+| Plan and invites | `get_my_usage`, `get_my_referral` | same |
+| Thesis Check | — | `run_pool_thesis_check`, `list_pool_thesis_checks`, `get_pool_thesis_check` |
 
-Filters take exact values (listed in each tool's parameters); `list_pool_tags`
-and `get_pool_feed` are desktop-app tools and are not listed to this plugin.
+Filters take exact values (listed in each tool's parameters). `list_pool_tags`
+and `get_pool_feed` are desktop-app tools and aren't listed to this plugin. On
+Pro and above the server also lists the desktop app's module, template and
+report tools; the skills ignore them, and those plans are better served by the
+desktop app.
 
-The skills use bare tool names, so they work with any client's prefix.
-
-In Claude Code, tools load on demand (the connector isn't `alwaysLoad`).
+The skills use bare tool names, so they work with any client's prefix. The
+server marks the Free and Starter tools `alwaysLoad`, so Claude Code loads
+them at the start of a session instead of on demand.
 
 ## Quota and safety
 
-- **Story opens are metered.** `get_pool_story` / `get_news_story` count once
-  per story per day against the plan. The skills list first and open sparingly.
-- **Thesis Check is a paid-plan feature with a weekly limit**; the tools are
-  absent on free plans, where `market-context` reads supports and challenges
+- **Story opens are metered on Free** (100 a day). `get_pool_story` counts once
+  per story per day; lists, articles and timelines don't. The skills list first
+  and open sparingly.
+- **Thesis Check is on Starter, with a weekly limit** (40); the tools are
+  absent on Free, where `market-context` reads supports and challenges
   without the scoring. The `thesis-check` skill confirms before every run. In Claude Code a `PreToolUse` hook
   also asks before every `run_pool_thesis_check`; see `hooks/README.md`.
 - **No advice.** Company arrows are business impact, not price calls, and

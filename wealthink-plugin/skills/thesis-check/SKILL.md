@@ -1,24 +1,26 @@
 ---
 name: thesis-check
 description: >
-  Run Wealthink's Thesis Check (paid plans only) when the user explicitly asks
-  for a thesis check: it scores one statement against the last 24–72 hours of
-  stories and returns those that challenge or support it, with the evidence
-  and match strength. Also reads the user's past checks. For "does the
+  Run Wealthink's Thesis Check (Starter and above) when the user explicitly
+  asks for a thesis check: it scores one statement against the stories the
+  plan shows (the last 30 days on Starter) and returns those that challenge or
+  support it, with the evidence and match strength. Also reads the user's past checks. For "does the
   news back my view?" without that request, use market-context instead.
-compatibility: Requires the Wealthink MCP server (https://api.thewealthink.com/mcp, OAuth) and a paid Wealthink plan; the tools are absent on free plans.
+compatibility: Requires the Wealthink MCP server (https://api.thewealthink.com/mcp, OAuth) and the Starter plan or above; the tools are absent on Free.
 license: MIT
 metadata:
   author: wealthink
-  version: "0.3.0"
+  version: "0.4.0"
 allowed-tools: mcp__plugin_wealthink_mcp__list_pool_thesis_checks mcp__plugin_wealthink_mcp__get_pool_thesis_check
 ---
 
 # Thesis Check
 
-Paid plans only, with a weekly limit. If `run_pool_thesis_check` isn't in your
-tool list, or returns 402, the user's plan doesn't include it: test the view
-with `market-context` instead.
+Starter and above, with a weekly limit (40 on Starter; `get_my_usage` →
+`meters.thesis_checks`). If `run_pool_thesis_check` isn't in your tool list,
+or returns 402, the user's plan doesn't include it: say once that Thesis Check
+is on Starter, and test the view with `market-context` instead. A 429 means
+this week's checks are used up until `resets_at`.
 
 | Tool | Params | Returns |
 |---|---|---|
