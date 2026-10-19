@@ -5,12 +5,8 @@
 CLAUDE.md
 .claude/settings.local.json
 
-# Internal handoff spec for the connector team — names server-side paths and
-# unreleased fixes; shared internally, not published with the plugin.
-docs/mcp-server-requirements.md
-
-# Internal working docs: audits, diffs, plans, interviews. Not published.
-docs/internal/
+# Internal docs stay local; only the plugin is published.
+docs/
 
 __pycache__/
 *.pyc

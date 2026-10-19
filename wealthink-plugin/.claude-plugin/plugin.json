@@ -2,8 +2,8 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "wealthink",
   "displayName": "Wealthink for agents",
-  "description": "Run financial research on Wealthink from inside Claude. Browse the market news Wealthink tracks for you, build and run qualitative + quantitative research modules, generate and share multi-asset research reports — all through the Wealthink MCP connector. Persona lenses (public markets, private equity, venture, fund manager) adapt the vocabulary; the core mechanics are shared.",
-  "version": "0.1.0",
+  "description": "Understand Indian markets with Wealthink, a coherence engine that links recent Indian financial news into one map: what's moving markets today, how the stories behind a company, sector, macro driver or portfolio connect, why something happened and what followed, and what supports or challenges your view. Includes the MCP connection setup guide.",
+  "version": "0.4.0",
   "author": {
     "name": "Wealthink",
     "email": "support@thewealthink.com"
@@ -13,17 +13,15 @@
   "license": "MIT",
   "keywords": [
     "finance",
-    "research",
-    "investment-research",
+    "financial-news",
     "market-news",
-    "reports",
-    "private-equity",
-    "public-markets",
-    "venture-capital"
+    "market-coherence",
+    "india",
+    "equities",
+    "stories",
+    "thesis-check",
+    "mcp"
   ],
   "mcpServers": "./.mcp.json",
-  "skills": [
-    "./skills/core/",
-    "./skills/lenses/"
-  ]
+  "skills": "./skills/"
 }

@@ -16,8 +16,8 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Hook gate tests
-        run: python3 wealthink-plugin/hooks/tests/test_gates.py
+      - name: Hook tests
+        run: python3 wealthink-plugin/hooks/tests/test_hooks.py
 
       - name: Manifests parse and versions agree
         run: python3 .github/scripts/check_manifests.py
