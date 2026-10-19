@@ -81,7 +81,7 @@ a forecast or an index move**.
 
 | Field | Meaning |
 |---|---|
-| `count` / `showing` / `next_cursor` | Total matches, rows returned, and the cursor for the next page. Rows are trimmed to a response budget, usually 10–13 rows whatever `limit` says |
+| `count` / `showing` / `next_cursor` | Total matches, rows returned, and the cursor for the next page. Rows are trimmed to a response budget (about 6,000 characters), so a page holds about 9 rows whatever `limit` says; `limit` only lowers it |
 | `state` | `new` (first seen), `developing` (still gaining articles), `settled` (coverage stopped) |
 | `articles` | Number of articles clustered into the story. More articles means better established |
 | `companies` | `"<name> (<direction>)"`, with `", close call"` appended when the evidence is nearly balanced. The direction is business impact, not a price call |
@@ -122,45 +122,52 @@ a short history.
 {
   "story_id": "sd7d0a67873285e2",
   "headline": "RBI liquidity management: Central bank to use ‘appropriate mix’ of tools to align WACR with repo rate",
-  "state": "new", "articles": 1,
+  "first_seen": "2026-10-07T13:16:00+05:30", "last_seen": "2026-10-07T13:16:00+05:30",
+  "state": "new", "article_count": 1,
+  "categories": ["Policy"], "event_types": ["Policy decision"], "surprise": false,
   "sectors": ["Financial Services"], "drivers": ["Interest rates and RBI policy"],
+  "articles": [{"article_id": "ad7d0a67873285e2", "publisher": "CNBC-TV18",
+                "headline": "…", "published": "2026-10-07T13:16:00+05:30", "url": "https://www.cnbctv18.com/…"}],
+  "citations": [],
+  "companies": [{"name": "PB Fintech Ltd.", "isin": "INE417T01026", "sector": "Financial Services",
+                 "arrow": "hurts", "strength": "strong", "close_call": false, "articles": 1,
+                 "p_better": 0.08, "p_worse": 0.92}],
   "first_order_effects": {"Interest rates and RBI policy": "up"},
-  "articles_list": [{"article_id": "ad7d0a67873285e2", "publisher": "CNBC-TV18",
-                     "headline": "…", "published": "07 Oct 13:16 IST", "url": "https://www.cnbctv18.com/…"}],
-  "citations (copies, not processed)": [],
-  "company_directions": [],
-  "knock_on_links": [
+  "knock_ons": [
     {"from": "Interest rates and RBI policy", "to": "NBFCs and lenders", "to_sector": "Financial Services",
-     "direction": "hurts", "order": 2, "shown": true, "link_strength": "likely", "confidence": 0.7,
+     "direction": "hurts", "order": 2, "shown": true, "link_strength": "likely",
      "size": "noticeable", "reason": "Higher rates raise NBFCs' cost of funds faster than they can reprice loans",
      "articles_supporting": 1},
     {"from": "Real estate", "to": "Cement", "to_sector": "Construction Materials",
-     "direction": "hurts", "order": 3, "shown": false, "link_strength": "possible", "confidence": 0.58,
+     "direction": "hurts", "order": 3, "shown": false, "link_strength": "possible",
      "size": "noticeable", "reason": "Housing is the largest source of cement demand", "articles_supporting": 1}
   ],
-  "related_stories": [{"story_id": "sf736fecf2040665",
-                       "headline": "RBI Monetary Policy: Rates raised by 25 bps, stance changed to 'calibrated tightening'",
-                       "strength": 0.67}],
-  "follows_from (this story is a consequence or follow-up of)": [
-    {"story_id": "s6caf0edb48a8172", "headline": "RBI Shifts Stance, Hikes Repo Rate For First Time Since February 2023 …", "strength": 0.84}],
-  "followed_by (later stories that follow from this one)": [
-    {"story_id": "s0ecd0274b89a6c8", "headline": "Why Rate cuts off the table? Repo rate raised after 4 yrs …", "strength": 0.68}]
+  "follows_from": [{"story_id": "s6caf0edb48a8172",
+                    "headline": "RBI Shifts Stance, Hikes Repo Rate For First Time Since February 2023 …",
+                    "link_strength": "strong"}],
+  "followed_by": [{"story_id": "s0ecd0274b89a6c8",
+                   "headline": "Why Rate cuts off the table? Repo rate raised after 4 yrs …",
+                   "link_strength": "likely"}],
+  "related": [{"story_id": "sf736fecf2040665",
+               "headline": "RBI Monetary Policy: Rates raised by 25 bps, stance changed to 'calibrated tightening'",
+               "link_strength": "possible"}]
 }
 ```
 
 | Field | Meaning |
 |---|---|
-| `articles_list` | Processed articles. `article_id` opens with `get_pool_article` |
-| `citations (copies, not processed)` | Other outlets' copies. List and link them; never quote them |
-| `company_directions` | Net direction per company over the story's articles. It can be empty even for a macro story |
+| `articles` | Processed articles, oldest first. `article_id` opens with `get_pool_article` |
+| `citations` | Other outlets' copies, not processed. List and link them; never quote them |
+| `companies` | Each company, rolled up over the story's articles: `arrow` and `strength` as on a row; `close_call: true` means read before relying on it; `p_better` / `p_worse` are for ranking only. It can be empty even for a macro story |
 | `first_order_effects` | The drivers or industry parts the news itself moves |
-| `knock_on_links` | Chains outward. `order` 2 = one hop and 3 = two hops; follow `from` → `to` to see the chain (rates → real estate → cement). `shown: false` or `confidence` < 0.5 means a weak lead |
-| `related_stories` | The closest similar stories. Not causal |
-| `follows_from (…)` | Earlier stories this one is a consequence of: the **why**. A linked story's `headline` can be `null`; open it only if the link matters |
-| `followed_by (…)` | Later stories that follow from it: the **what next** |
+| `knock_ons` | Chains outward, shown ones first. `order` 2 = one hop and 3 = two hops; follow `from` → `to` to see the chain (rates → real estate → cement). `shown: false` (below the bar the website shows) or `link_strength: "possible"` means a weak lead |
+| `follows_from` | Earlier stories this one is a consequence of: the **why** |
+| `followed_by` | Later stories that follow from it: the **what next** |
+| `related` | The closest similar stories. Not causal |
 
-The link keys contain spaces and parentheses. Read them by their prefix:
-`follows_from`, `followed_by`.
+Story links carry `link_strength` (`strong`, `likely` or `possible`), strongest
+first. A linked story's `headline` can be `null`; open it only if the link
+matters.
 
 ## `get_pool_article`: evidence
 
@@ -237,7 +244,7 @@ They are Wealthink's reasoning, not article claims.
   "timeline": [
     {"story_id": "s5d42639f5c79656", "title": "IRDAI moves to curb commissions on insurance policies",
      "first_seen": "2026-10-07T15:23:20+05:30", "state": "developing", "link": "follows",
-     "companies": {"HDFC Bank Ltd.": "hurts", "…": "…"}, "driver_moves": {}},
+     "companies": {"HDFC Bank Ltd.": "hurts", "…": "…"}, "driver_moves": {}, "link_strength": "likely"},
     {"story_id": "s55ea6a5c8c05ec1", "link": "this", "…": "…"}
   ],
   "related": [{"story_id": "s6f9821c12953301", "link": "related", "…": "…"}]
@@ -246,7 +253,8 @@ They are Wealthink's reasoning, not article claims.
 
 Oldest first, up to 10 steps each way, each story once. `link` says how a step
 joins: `follows` (an earlier cause), `followed_by` (a later consequence),
-`related` (similar, not causal). A `note` says when linked stories older than
+`related` (similar, not causal); `link_strength` says how closely it links to
+the step before it. A `note` says when linked stories older than
 the plan's history were left out. It doesn't count as a story open.
 
 ## Fixed filter values

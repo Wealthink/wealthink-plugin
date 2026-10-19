@@ -65,7 +65,7 @@ user's plan's tools. On Pro and above it also lists desktop-app tools
 `sector`, `driver`, `event_type` and `category` take **exact** values; the
 allowed ones are in each tool's parameters (e.g. `"Financial Services"`,
 `"Crude oil"`, `"The rupee"`). A fragment like `"Bank"` or `"rates"` is
-refused with the list of allowed values. List calls return about 10–15 rows
+refused with the list of allowed values. List calls return about 9 rows
 per page whatever `limit` says (`count` is the total, `next_cursor` the next
 page). Narrow with a filter rather than paging through a whole sector.
 Payload samples: [references/data-model.md](references/data-model.md).
