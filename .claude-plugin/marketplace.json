@@ -1,6 +1,6 @@
 {
   "name": "wealthink",
-  "description": "Official Wealthink marketplace — install the Wealthink plugin to run financial research from inside Claude.",
+  "description": "Official Wealthink marketplace — install the Wealthink plugin to understand Indian markets through Wealthink's connected map of the news.",
   "owner": {
     "name": "Wealthink",
     "email": "support@thewealthink.com"
@@ -9,8 +9,8 @@
     {
       "name": "wealthink",
       "source": "./wealthink-plugin",
-      "description": "Run financial research on Wealthink from inside Claude — browse tracked market news, build and run qualitative + quantitative research modules, and generate and share multi-asset research reports through the Wealthink MCP connector.",
-      "version": "0.1.0",
+      "description": "Understand Indian markets with Wealthink, a coherence engine that links recent Indian financial news into one map: what's moving markets today, how the stories behind a company, sector, macro driver or portfolio connect, why something happened and what followed, and what supports or challenges your view. Includes the MCP connection setup guide.",
+      "version": "0.4.0",
       "license": "MIT",
       "homepage": "https://github.com/Wealthink/wealthink-plugin",
       "author": {

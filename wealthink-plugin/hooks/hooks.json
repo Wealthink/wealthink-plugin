@@ -13,20 +13,11 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "mcp__plugin_wealthink_mcp__set_.*visibility",
+        "matcher": "mcp__plugin_wealthink_mcp__run_pool_thesis_check",
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/publish_gate.py\""
-          }
-        ]
-      },
-      {
-        "matcher": "mcp__plugin_wealthink_mcp__(archive|delete)_.*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/archive_gate.py\""
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/thesis_gate.py\""
           }
         ]
       }
