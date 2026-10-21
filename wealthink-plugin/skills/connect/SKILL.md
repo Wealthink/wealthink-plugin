@@ -12,7 +12,7 @@ compatibility: Any MCP-capable agent with remote (streamable HTTP) MCP and OAuth
 license: MIT
 metadata:
   author: wealthink
-  version: "0.4.0"
+  version: "0.5.0"
 allowed-tools: mcp__plugin_wealthink_mcp__get_pool_pulse mcp__plugin_wealthink_mcp__get_my_usage
 ---
 
@@ -85,15 +85,23 @@ URL `https://api.thewealthink.com/mcp`.
 
 ### ChatGPT
 
-ChatGPT can't load skills or install connectors from the chat. Tell the user:
+ChatGPT installs Wealthink as a plugin, which brings these skills and the
+connection, from a zip attached to every Wealthink release. If you can build
+plugins (for example `@plugin create`), follow
+`https://raw.githubusercontent.com/Wealthink/wealthink-plugin/main/AGENTS.md`:
+it says where the zip is and what to keep from an existing install.
+Otherwise tell the user:
 
-1. Settings → Apps & Connectors → Advanced → turn on **Developer mode** (paid
-   ChatGPT plans).
-2. Add a connector: URL `https://api.thewealthink.com/mcp`, authentication
-   OAuth. Sign in in the browser.
-3. Paste the text of
-   `https://github.com/Wealthink/wealthink-plugin/blob/main/wealthink-plugin/agent-instructions.md`
-   into the project's instructions or custom instructions.
+1. Open the **Plugins** page and click **Add a plugin**.
+2. Type `@plugin create`, paste the link
+   `https://github.com/Wealthink/wealthink-plugin/releases/latest/download/wealthink-plugin.zip`
+   and ask it to install that zip as the Wealthink plugin. If ChatGPT can't
+   fetch the link, download the zip and attach it instead.
+3. Sign in to Wealthink in the browser when asked.
+4. Start a new chat and ask "What's moving Indian markets today?".
+
+To update later, do the same with the same link: it always serves the newest
+release.
 
 ### Codex CLI
 

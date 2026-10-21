@@ -11,6 +11,14 @@ Run:  python3 .github/scripts/check_manifests.py
 4. Every hook matcher and every skill/agent tool grant uses the tool prefix the
    bundled connector actually produces, derived from plugin name + server key.
    Rename either one without sweeping the repo and the gates stop firing.
+5. The ChatGPT/Codex manifest (.codex-plugin/plugin.json) and its marketplace
+   (.agents/plugins/marketplace.json) agree with the Claude manifest on name
+   and version, and point at the plugin directory.
+6. The file list in AGENTS.md is exactly the files ChatGPT's plugin creator
+   should copy. It fetches by that list, so a new skill file missing from it
+   silently ships a plugin without it.
+7. Every skill's `metadata.version` matches the plugin version, so a release
+   can't ship with half the version copies bumped.
 """
 import json
 import pathlib
@@ -32,6 +40,8 @@ def load(path: pathlib.Path):
 marketplace = load(ROOT / ".claude-plugin" / "marketplace.json")
 plugin = load(ROOT / "wealthink-plugin" / ".claude-plugin" / "plugin.json")
 mcp = load(ROOT / "wealthink-plugin" / ".mcp.json")
+codex_marketplace = load(ROOT / ".agents" / "plugins" / "marketplace.json")
+codex_plugin = load(ROOT / "wealthink-plugin" / ".codex-plugin" / "plugin.json")
 
 if marketplace and plugin:
     entries = marketplace.get("plugins") or []
@@ -78,9 +88,64 @@ if plugin and mcp:
                 f"key {servers[0]!r})"
             )
 
+if plugin and codex_plugin:
+    for field in ("name", "version"):
+        if codex_plugin.get(field) != plugin.get(field):
+            errors.append(
+                f".codex-plugin/plugin.json {field} is {codex_plugin.get(field)!r} "
+                f"but .claude-plugin/plugin.json has {plugin.get(field)!r}"
+            )
+
+if codex_marketplace and codex_plugin:
+    entries = codex_marketplace.get("plugins") or []
+    entry = next((e for e in entries if e.get("name") == codex_plugin.get("name")), None)
+    if entry is None:
+        errors.append(
+            f".agents/plugins/marketplace.json has no entry named {codex_plugin.get('name')!r}"
+        )
+    else:
+        path = (entry.get("source") or {}).get("path", "")
+        if not (ROOT / path / ".codex-plugin" / "plugin.json").exists():
+            errors.append(
+                f".agents/plugins/marketplace.json source path {path!r} does not "
+                "contain a .codex-plugin/plugin.json"
+            )
+
+PLUGIN_ROOT = ROOT / "wealthink-plugin"
+
+if plugin:
+    for skill in sorted((PLUGIN_ROOT / "skills").glob("*/SKILL.md")):
+        match = re.search(r'^  version: "([^"]+)"$', skill.read_text(), re.M)
+        found_version = match.group(1) if match else None
+        if found_version != plugin.get("version"):
+            errors.append(
+                f"{skill.relative_to(ROOT)}: metadata.version is {found_version!r} "
+                f"but the plugin is {plugin.get('version')!r}"
+            )
+RAW = "https://raw.githubusercontent.com/Wealthink/wealthink-plugin/main/wealthink-plugin/"
+agents_md = (ROOT / "AGENTS.md").read_text()
+block = re.search(r"<!-- plugin-files:start -->(.*?)<!-- plugin-files:end -->", agents_md, re.S)
+if block is None:
+    errors.append("AGENTS.md is missing its plugin-files block")
+else:
+    rows = re.findall(r"^\| `([^`]+)` \| (\S+) \|$", block.group(1), re.M)
+    for rel, url in rows:
+        if url != RAW + rel:
+            errors.append(f"AGENTS.md: raw URL for {rel!r} should be {RAW + rel!r}")
+    listed = {rel for rel, _ in rows}
+    expected = {".codex-plugin/plugin.json", ".mcp.json"} | {
+        p.relative_to(PLUGIN_ROOT).as_posix()
+        for p in (PLUGIN_ROOT / "skills").rglob("*")
+        if p.is_file() and p.name != ".DS_Store"
+    }
+    for rel in sorted(expected - listed):
+        errors.append(f"AGENTS.md doesn't list plugin file {rel!r}")
+    for rel in sorted(listed - expected):
+        errors.append(f"AGENTS.md lists {rel!r}, which isn't a plugin file")
+
 if errors:
     for err in errors:
         print(f"FAIL  {err}")
     sys.exit(1)
 
-print("ok    manifests parse, versions agree, tool prefix is consistent")
+print("ok    manifests parse, versions agree, tool prefix is consistent, AGENTS.md file list is complete, skill versions agree")

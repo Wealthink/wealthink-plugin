@@ -1,0 +1,20 @@
+{
+  "name": "wealthink",
+  "interface": {
+    "displayName": "Wealthink"
+  },
+  "plugins": [
+    {
+      "name": "wealthink",
+      "source": {
+        "source": "local",
+        "path": "./wealthink-plugin"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Finance"
+    }
+  ]
+}
