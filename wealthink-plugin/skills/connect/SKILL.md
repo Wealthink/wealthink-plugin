@@ -12,7 +12,7 @@ compatibility: Any MCP-capable agent with remote (streamable HTTP) MCP and OAuth
 license: MIT
 metadata:
   author: wealthink
-  version: "0.5.0"
+  version: "0.5.1"
 allowed-tools: mcp__plugin_wealthink_mcp__get_pool_pulse mcp__plugin_wealthink_mcp__get_my_usage
 ---
 

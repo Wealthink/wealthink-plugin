@@ -135,13 +135,23 @@ else:
     listed = {rel for rel, _ in rows}
     expected = {".codex-plugin/plugin.json", ".mcp.json"} | {
         p.relative_to(PLUGIN_ROOT).as_posix()
-        for p in (PLUGIN_ROOT / "skills").rglob("*")
+        for folder in ("skills", "assets")
+        for p in (PLUGIN_ROOT / folder).rglob("*")
         if p.is_file() and p.name != ".DS_Store"
     }
     for rel in sorted(expected - listed):
         errors.append(f"AGENTS.md doesn't list plugin file {rel!r}")
     for rel in sorted(listed - expected):
         errors.append(f"AGENTS.md lists {rel!r}, which isn't a plugin file")
+
+if codex_plugin:
+    interface = codex_plugin.get("interface") or {}
+    for field in ("logo", "composerIcon"):
+        if field in interface and not (PLUGIN_ROOT / interface[field]).is_file():
+            errors.append(
+                f".codex-plugin/plugin.json interface.{field} points at "
+                f"{interface[field]!r}, which doesn't exist"
+            )
 
 if errors:
     for err in errors:
