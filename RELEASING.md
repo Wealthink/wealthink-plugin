@@ -6,7 +6,7 @@ to every client:
 | Client | What it installs | Where it reads it from |
 |---|---|---|
 | Claude Code, Claude.ai, Desktop, Cowork | `wealthink-plugin/` via `.claude-plugin/` | the `main` branch, through `.claude-plugin/marketplace.json` |
-| Codex | `wealthink-plugin/` via `.codex-plugin/` | the `main` branch, through `.agents/plugins/marketplace.json` |
+| Codex | `wealthink-plugin/` via its root `plugin.json` | the `main` branch, through `.agents/plugins/marketplace.json` |
 | ChatGPT | `wealthink-plugin.zip` | the latest GitHub release |
 
 Merging to `main` ships to Claude and Codex users straight away. ChatGPT users
@@ -21,12 +21,18 @@ get a change only once a release is published.
   rejects.
 - **Bump every version copy together.** The version lives in
   `wealthink-plugin/.claude-plugin/plugin.json`,
-  `wealthink-plugin/.codex-plugin/plugin.json`,
+  `wealthink-plugin/plugin.json`,
   `.claude-plugin/marketplace.json` and each skill's `metadata.version`. CI
   fails if any one differs.
 - **A new plugin file goes in the `AGENTS.md` file list,** with its raw URL.
   CI fails if a file under `skills/` is missing from the list, and the zip is
   built from that list only.
+- **Follow OpenAI's portable format for the ChatGPT / Codex side.**
+  `plugin.json` and `mcp.json` follow the Agent Plugins schemas in
+  `.github/schemas/` (from https://agent-plugins.org/schemas/1.0.0/), and CI
+  validates them. OpenAI-specific fields go under `extensions.com.openai`.
+  Listing links must be `https://` (ChatGPT rejects `mailto:`). See
+  https://developers.openai.com/plugins/build/plugins.
 - **Claude-only features stay out of the ChatGPT package.** Hooks, commands
   and anything that relies on `${CLAUDE_PLUGIN_ROOT}` or
   `mcp__plugin_wealthink_mcp__` tool names work only in Claude Code.

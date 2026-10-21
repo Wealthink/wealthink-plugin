@@ -34,12 +34,15 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Install schema validator
+        run: pip install jsonschema
+
       - name: Manifests parse and versions agree
         run: python3 .github/scripts/check_manifests.py
 
       - name: Tag matches the plugin version
         run: |
-          version=$(python3 -c 'import json; print(json.load(open("wealthink-plugin/.codex-plugin/plugin.json"))["version"])')
+          version=$(python3 -c 'import json; print(json.load(open("wealthink-plugin/plugin.json"))["version"])')
           tag="${GITHUB_REF_NAME#v}"
           if [ "$tag" != "$version" ]; then
             echo "Release tag $GITHUB_REF_NAME doesn't match plugin version $version"

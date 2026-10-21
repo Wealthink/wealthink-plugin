@@ -158,8 +158,10 @@ AGENTS.md                         how ChatGPT's plugin creator builds the plugin
 RELEASING.md                      how to change and release the plugin
 .github/workflows/release.yml     attaches wealthink-plugin.zip to every release
 wealthink-plugin/                 the plugin
-├── .codex-plugin/plugin.json     the ChatGPT / Codex manifest
-├── .mcp.json                     the Wealthink MCP server (OAuth)
+├── plugin.json                   the ChatGPT / Codex manifest (OpenAI Agent Plugins format)
+├── mcp.json                      the Wealthink MCP server, for ChatGPT / Codex
+├── .mcp.json                     the Wealthink MCP server, for Claude
+├── assets/                       the Wealthink logo
 ├── agent-instructions.md         a system prompt for agents without skills (e.g. a custom GPT)
 ├── skills/
 │   ├── connect/                  setup guide for every agent (the prompt above reads it)

@@ -11,7 +11,8 @@ Run:  python3 .github/scripts/check_manifests.py
 4. Every hook matcher and every skill/agent tool grant uses the tool prefix the
    bundled connector actually produces, derived from plugin name + server key.
    Rename either one without sweeping the repo and the gates stop firing.
-5. The ChatGPT/Codex manifest (.codex-plugin/plugin.json) and its marketplace
+5. The portable manifest (plugin.json, OpenAI's Agent Plugins format) and its
+   marketplace
    (.agents/plugins/marketplace.json) agree with the Claude manifest on name
    and version, and point at the plugin directory.
 6. The file list in AGENTS.md is exactly the files ChatGPT's plugin creator
@@ -41,7 +42,8 @@ marketplace = load(ROOT / ".claude-plugin" / "marketplace.json")
 plugin = load(ROOT / "wealthink-plugin" / ".claude-plugin" / "plugin.json")
 mcp = load(ROOT / "wealthink-plugin" / ".mcp.json")
 codex_marketplace = load(ROOT / ".agents" / "plugins" / "marketplace.json")
-codex_plugin = load(ROOT / "wealthink-plugin" / ".codex-plugin" / "plugin.json")
+codex_plugin = load(ROOT / "wealthink-plugin" / "plugin.json")
+portable_mcp = load(ROOT / "wealthink-plugin" / "mcp.json")
 
 if marketplace and plugin:
     entries = marketplace.get("plugins") or []
@@ -92,7 +94,7 @@ if plugin and codex_plugin:
     for field in ("name", "version"):
         if codex_plugin.get(field) != plugin.get(field):
             errors.append(
-                f".codex-plugin/plugin.json {field} is {codex_plugin.get(field)!r} "
+                f"wealthink-plugin/plugin.json {field} is {codex_plugin.get(field)!r} "
                 f"but .claude-plugin/plugin.json has {plugin.get(field)!r}"
             )
 
@@ -105,10 +107,10 @@ if codex_marketplace and codex_plugin:
         )
     else:
         path = (entry.get("source") or {}).get("path", "")
-        if not (ROOT / path / ".codex-plugin" / "plugin.json").exists():
+        if not (ROOT / path / "plugin.json").exists():
             errors.append(
                 f".agents/plugins/marketplace.json source path {path!r} does not "
-                "contain a .codex-plugin/plugin.json"
+                "contain a plugin.json"
             )
 
 PLUGIN_ROOT = ROOT / "wealthink-plugin"
@@ -133,7 +135,7 @@ else:
         if url != RAW + rel:
             errors.append(f"AGENTS.md: raw URL for {rel!r} should be {RAW + rel!r}")
     listed = {rel for rel, _ in rows}
-    expected = {".codex-plugin/plugin.json", ".mcp.json"} | {
+    expected = {"plugin.json", "mcp.json"} | {
         p.relative_to(PLUGIN_ROOT).as_posix()
         for folder in ("skills", "assets")
         for p in (PLUGIN_ROOT / folder).rglob("*")
@@ -145,11 +147,15 @@ else:
         errors.append(f"AGENTS.md lists {rel!r}, which isn't a plugin file")
 
 if codex_plugin:
-    interface = codex_plugin.get("interface") or {}
+    interface = (
+        (codex_plugin.get("extensions") or {}).get("com.openai", {}).get("interface") or {}
+    )
+    if not interface:
+        errors.append("plugin.json has no extensions.com.openai.interface")
     for field in ("logo", "composerIcon"):
         if field in interface and not (PLUGIN_ROOT / interface[field]).is_file():
             errors.append(
-                f".codex-plugin/plugin.json interface.{field} points at "
+                f"plugin.json interface.{field} points at "
                 f"{interface[field]!r}, which doesn't exist"
             )
 
@@ -158,13 +164,30 @@ if codex_plugin:
     for field, value in interface.items():
         if field.endswith("URL") and not str(value).startswith("https://"):
             errors.append(
-                f".codex-plugin/plugin.json interface.{field} is {value!r}; "
+                f"plugin.json interface.{field} is {value!r}; "
                 "ChatGPT only accepts https:// links"
             )
+
+# OpenAI's Agent Plugins schemas, vendored in .github/schemas/ so CI doesn't
+# depend on agent-plugins.org being up. Skipped where jsonschema isn't installed;
+# CI installs it.
+try:
+    import jsonschema
+except ImportError:
+    jsonschema = None
+    print("skip  schema validation (pip install jsonschema)")
+if jsonschema:
+    for doc, name in ((codex_plugin, "plugin"), (portable_mcp, "mcp")):
+        if doc is None:
+            continue
+        schema = json.loads((ROOT / ".github" / "schemas" / f"{name}.schema.json").read_text())
+        for err in jsonschema.Draft202012Validator(schema).iter_errors(doc):
+            path = "/".join(str(p) for p in err.absolute_path) or "(root)"
+            errors.append(f"wealthink-plugin/{name}.json {path}: {err.message}")
 
 if errors:
     for err in errors:
         print(f"FAIL  {err}")
     sys.exit(1)
 
-print("ok    manifests parse, versions agree, tool prefix is consistent, AGENTS.md file list is complete, skill versions agree")
+print("ok    manifests parse, versions agree, tool prefix is consistent, AGENTS.md file list is complete, skill versions agree, portable manifests valid")
