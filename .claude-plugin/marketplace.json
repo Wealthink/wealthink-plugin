@@ -10,7 +10,7 @@
       "name": "wealthink",
       "source": "./wealthink-plugin",
       "description": "Understand Indian markets with Wealthink, a coherence engine that links recent Indian financial news into one map: what's moving markets today, how the stories behind a company, sector, macro driver or portfolio connect, why something happened and what followed, and what supports or challenges your view. Includes the MCP connection setup guide.",
-      "version": "0.4.0",
+      "version": "0.5.0",
       "license": "MIT",
       "homepage": "https://github.com/Wealthink/wealthink-plugin",
       "author": {

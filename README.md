@@ -120,9 +120,9 @@ The [setup guide](./wealthink-plugin/skills/connect/SKILL.md) has the config for
 <summary><b>ChatGPT</b></summary>
 
 Open **Plugins** → **Add a plugin**, type `@plugin create` and paste
-`https://github.com/Wealthink/wealthink-plugin`. ChatGPT builds the plugin
-from [`AGENTS.md`](./AGENTS.md), which lists every file it needs. Sign in to
-Wealthink in the browser when asked.
+[`https://github.com/Wealthink/wealthink-plugin/releases/latest/download/wealthink-plugin.zip`](https://github.com/Wealthink/wealthink-plugin/releases/latest/download/wealthink-plugin.zip).
+If ChatGPT can't fetch it, download the zip and attach it instead. Sign in to
+Wealthink in the browser when asked. To update, do the same again.
 
 </details>
 
@@ -148,6 +148,8 @@ plain words, which plan has it, and answers from what you have.
 .claude-plugin/marketplace.json   the Claude marketplace listing
 .agents/plugins/marketplace.json  the ChatGPT / Codex marketplace listing
 AGENTS.md                         how ChatGPT's plugin creator builds the plugin
+RELEASING.md                      how to change and release the plugin
+.github/workflows/release.yml     attaches wealthink-plugin.zip to every release
 wealthink-plugin/                 the plugin
 ├── .codex-plugin/plugin.json     the ChatGPT / Codex manifest
 ├── .mcp.json                     the Wealthink MCP server (OAuth)

@@ -17,6 +17,8 @@ Run:  python3 .github/scripts/check_manifests.py
 6. The file list in AGENTS.md is exactly the files ChatGPT's plugin creator
    should copy. It fetches by that list, so a new skill file missing from it
    silently ships a plugin without it.
+7. Every skill's `metadata.version` matches the plugin version, so a release
+   can't ship with half the version copies bumped.
 """
 import json
 import pathlib
@@ -110,6 +112,16 @@ if codex_marketplace and codex_plugin:
             )
 
 PLUGIN_ROOT = ROOT / "wealthink-plugin"
+
+if plugin:
+    for skill in sorted((PLUGIN_ROOT / "skills").glob("*/SKILL.md")):
+        match = re.search(r'^  version: "([^"]+)"$', skill.read_text(), re.M)
+        found_version = match.group(1) if match else None
+        if found_version != plugin.get("version"):
+            errors.append(
+                f"{skill.relative_to(ROOT)}: metadata.version is {found_version!r} "
+                f"but the plugin is {plugin.get('version')!r}"
+            )
 RAW = "https://raw.githubusercontent.com/Wealthink/wealthink-plugin/main/wealthink-plugin/"
 agents_md = (ROOT / "AGENTS.md").read_text()
 block = re.search(r"<!-- plugin-files:start -->(.*?)<!-- plugin-files:end -->", agents_md, re.S)
@@ -136,4 +148,4 @@ if errors:
         print(f"FAIL  {err}")
     sys.exit(1)
 
-print("ok    manifests parse, versions agree, tool prefix is consistent, AGENTS.md file list is complete")
+print("ok    manifests parse, versions agree, tool prefix is consistent, AGENTS.md file list is complete, skill versions agree")

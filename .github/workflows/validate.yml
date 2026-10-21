@@ -22,6 +22,9 @@ jobs:
       - name: Manifests parse and versions agree
         run: python3 .github/scripts/check_manifests.py
 
+      - name: ChatGPT plugin package builds
+        run: python3 .github/scripts/package_plugin.py dist/wealthink-plugin.zip
+
       - name: Install Claude Code
         run: npm install -g @anthropic-ai/claude-code
 

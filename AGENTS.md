@@ -6,6 +6,11 @@ is listed here, so you don't have to browse GitHub's file pages.
 
 ## The package
 
+The quickest source is the release zip, built from the files below and
+nothing else:
+https://github.com/Wealthink/wealthink-plugin/releases/latest/download/wealthink-plugin.zip
+Use it as it is. If the user attached a `wealthink-plugin.zip`, use that.
+
 The plugin root is `wealthink-plugin/`. Copy exactly these files, keeping
 their paths relative to that root. If you were given a link to a branch or
 tag (`.../tree/<ref>`), put that ref in place of `main` in every URL below.
@@ -24,11 +29,6 @@ tag (`.../tree/<ref>`), put that ref in place of `main` in every URL below.
 | `skills/trace-story/SKILL.md` | https://raw.githubusercontent.com/Wealthink/wealthink-plugin/main/wealthink-plugin/skills/trace-story/SKILL.md |
 <!-- plugin-files:end -->
 
-If you can download an archive instead, the whole repo is at
-https://github.com/Wealthink/wealthink-plugin/archive/refs/heads/main.zip;
-take the `wealthink-plugin/` folder from it and drop the files listed under
-"Leave out".
-
 Copy the files byte for byte. Don't rewrite, summarise or merge the skills:
 each `SKILL.md` is loaded by its frontmatter `name` and `description`.
 
@@ -41,7 +41,9 @@ There is no API key. Never ask the user for an email, password or token.
 - **The user already has a Wealthink app or connector in ChatGPT:** keep it.
   If the plugin being updated has an `.app.json`, keep that file unchanged
   and keep `"apps": "./.app.json"` in `.codex-plugin/plugin.json`. Replacing
-  it breaks the user's sign-in.
+  it breaks the user's sign-in. Install only the skills from the package and
+  keep the plugin's own app configuration and presentation: the app already
+  is the connection, so don't add the `.mcp.json` server alongside it.
 - **They don't:** use `.mcp.json` as shipped. The user signs in in the browser
   when the plugin is installed or first used.
 
@@ -63,5 +65,11 @@ markets today.
 
 ## Updating
 
-To update an installed plugin, fetch the files again and replace them. The
-version is `version` in `.codex-plugin/plugin.json`.
+To update an installed plugin, fetch the latest release zip and update the
+existing plugin in place rather than creating a second one, keeping its
+`.app.json`. The version is `version` in `.codex-plugin/plugin.json`.
+
+## Changing this repo
+
+Maintainers and coding agents: read [RELEASING.md](./RELEASING.md) before
+changing or releasing the plugin.
