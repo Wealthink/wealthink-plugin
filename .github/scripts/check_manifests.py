@@ -152,7 +152,7 @@ if codex_plugin:
     )
     if not interface:
         errors.append("plugin.json has no extensions.com.openai.interface")
-    for field in ("logo", "composerIcon"):
+    for field in ("logo", "logoDark", "composerIcon", "composerIconDark"):
         if field in interface and not (PLUGIN_ROOT / interface[field]).is_file():
             errors.append(
                 f"plugin.json interface.{field} points at "
