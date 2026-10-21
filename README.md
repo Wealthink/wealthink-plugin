@@ -119,10 +119,17 @@ The [setup guide](./wealthink-plugin/skills/connect/SKILL.md) has the config for
 <details>
 <summary><b>ChatGPT</b></summary>
 
-Open **Plugins** → **Add a plugin**, type `@plugin create` and paste
-[`https://github.com/Wealthink/wealthink-plugin/releases/latest/download/wealthink-plugin.zip`](https://github.com/Wealthink/wealthink-plugin/releases/latest/download/wealthink-plugin.zip).
-If ChatGPT can't fetch it, download the zip and attach it instead. Sign in to
-Wealthink in the browser when asked. To update, do the same again.
+1. Download [`wealthink-plugin.zip`](https://github.com/Wealthink/wealthink-plugin/releases/latest/download/wealthink-plugin.zip). In Safari, first untick
+   Settings → General → **Open "safe" files after downloading**, or you get a
+   folder instead of the zip.
+2. In ChatGPT, open **Plugins** → **Add a plugin**, attach the zip and send:
+   ```text
+   @plugin create Install the attached zip as the Wealthink plugin exactly as packaged (if I already have a Wealthink plugin, update it in place, keep its .app.json unchanged, and take the new logo and branding), then have me sign in to Wealthink and confirm it works by telling me what's moving Indian markets today using Wealthink.
+   ```
+3. Sign in to Wealthink in the browser when asked.
+
+ChatGPT can't download the zip itself, so attach it. To update, download it
+again and repeat.
 
 </details>
 

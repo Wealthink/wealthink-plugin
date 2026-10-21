@@ -6,10 +6,10 @@ is listed here, so you don't have to browse GitHub's file pages.
 
 ## The package
 
-The quickest source is the release zip, built from the files below and
-nothing else:
+The package is `wealthink-plugin.zip`, built from the files below and nothing
+else. Normally the user attaches it: use it as it is. If they didn't and you
+can reach GitHub, it's at
 https://github.com/Wealthink/wealthink-plugin/releases/latest/download/wealthink-plugin.zip
-Use it as it is. If the user attached a `wealthink-plugin.zip`, use that.
 
 The plugin root is `wealthink-plugin/`. Copy exactly these files, keeping
 their paths relative to that root. If you were given a link to a branch or

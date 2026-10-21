@@ -86,22 +86,23 @@ URL `https://api.thewealthink.com/mcp`.
 ### ChatGPT
 
 ChatGPT installs Wealthink as a plugin, which brings these skills and the
-connection, from a zip attached to every Wealthink release. If you can build
-plugins (for example `@plugin create`), follow
-`https://raw.githubusercontent.com/Wealthink/wealthink-plugin/main/AGENTS.md`:
-it says where the zip is and what to keep from an existing install.
-Otherwise tell the user:
+connection, from a zip attached to every Wealthink release. ChatGPT can't
+download it itself (its sandbox can't reach GitHub), so the user downloads it
+and attaches it. If you are ChatGPT's plugin creator and the user attached
+`wealthink-plugin.zip`, follow
+`https://raw.githubusercontent.com/Wealthink/wealthink-plugin/main/AGENTS.md`
+for what to keep from an existing install. Otherwise tell the user:
 
-1. Open the **Plugins** page and click **Add a plugin**.
-2. Type `@plugin create`, paste the link
-   `https://github.com/Wealthink/wealthink-plugin/releases/latest/download/wealthink-plugin.zip`
-   and ask it to install that zip as the Wealthink plugin. If ChatGPT can't
-   fetch the link, download the zip and attach it instead.
-3. Sign in to Wealthink in the browser when asked.
-4. Start a new chat and ask "What's moving Indian markets today?".
+1. Download `https://github.com/Wealthink/wealthink-plugin/releases/latest/download/wealthink-plugin.zip`.
+   In Safari, first untick Settings → General → **Open "safe" files after
+   downloading**, or Safari unzips it into a folder.
+2. In ChatGPT, open the **Plugins** page and click **Add a plugin**.
+3. Attach the zip and send:
+   `@plugin create Install the attached zip as the Wealthink plugin exactly as packaged (if I already have a Wealthink plugin, update it in place, keep its .app.json unchanged, and take the new logo and branding), then have me sign in to Wealthink and confirm it works by telling me what's moving Indian markets today using Wealthink.`
+4. Sign in to Wealthink in the browser when asked.
 
-To update later, do the same with the same link: it always serves the newest
-release.
+To update later, download the zip again and repeat: the link always serves the
+newest release.
 
 ### Codex CLI
 

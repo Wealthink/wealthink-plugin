@@ -153,6 +153,15 @@ if codex_plugin:
                 f"{interface[field]!r}, which doesn't exist"
             )
 
+    # ChatGPT's installer rejects any interface link that isn't https://
+    # (a mailto: supportURL blocked the 0.5.0 install).
+    for field, value in interface.items():
+        if field.endswith("URL") and not str(value).startswith("https://"):
+            errors.append(
+                f".codex-plugin/plugin.json interface.{field} is {value!r}; "
+                "ChatGPT only accepts https:// links"
+            )
+
 if errors:
     for err in errors:
         print(f"FAIL  {err}")
