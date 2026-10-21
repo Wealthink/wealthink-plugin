@@ -30,6 +30,9 @@ get a change only once a release is published.
 - **Claude-only features stay out of the ChatGPT package.** Hooks, commands
   and anything that relies on `${CLAUDE_PLUGIN_ROOT}` or
   `mcp__plugin_wealthink_mcp__` tool names work only in Claude Code.
+- **Release only from `main`.** The `release` workflow refuses a tag whose
+  commit isn't on `main`, and a ruleset lets only admins create, move or
+  delete `v*` tags.
 - **Don't rename the MCP server key `mcp` or the plugin name `wealthink`.**
   Claude's tool names are built from both, and the hooks match on them.
 
@@ -50,4 +53,7 @@ get a change only once a release is published.
    version, and otherwise attaches `wealthink-plugin.zip`.
 5. Check that
    https://github.com/Wealthink/wealthink-plugin/releases/latest/download/wealthink-plugin.zip
-   downloads and lists the files in `AGENTS.md`.
+   downloads and lists the files in `AGENTS.md`, and that it was built by CI:
+   ```bash
+   gh attestation verify wealthink-plugin.zip -R Wealthink/wealthink-plugin
+   ```
