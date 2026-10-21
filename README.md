@@ -119,11 +119,11 @@ The [setup guide](./wealthink-plugin/skills/connect/SKILL.md) has the config for
 <details>
 <summary><b>ChatGPT</b></summary>
 
-Settings → Apps & Connectors → Advanced → turn on **Developer mode** (paid
-plans) → add a connector with URL `https://api.thewealthink.com/mcp` and OAuth.
-ChatGPT can't load skills, so paste
-[`agent-instructions.md`](./wealthink-plugin/agent-instructions.md) into your
-project's instructions.
+Open **Plugins** → **Add a plugin**, type `@plugin create` and paste
+`https://github.com/Wealthink/wealthink-plugin`. ChatGPT builds the plugin
+from [`AGENTS.md`](./AGENTS.md), which lists every file it needs. Sign in to
+Wealthink in the browser when asked.
+
 </details>
 
 ## Plans
@@ -146,9 +146,12 @@ plain words, which plan has it, and answers from what you have.
 
 ```
 .claude-plugin/marketplace.json   the Claude marketplace listing
+.agents/plugins/marketplace.json  the ChatGPT / Codex marketplace listing
+AGENTS.md                         how ChatGPT's plugin creator builds the plugin
 wealthink-plugin/                 the plugin
+├── .codex-plugin/plugin.json     the ChatGPT / Codex manifest
 ├── .mcp.json                     the Wealthink MCP server (OAuth)
-├── agent-instructions.md         a system prompt for agents without skills (e.g. ChatGPT)
+├── agent-instructions.md         a system prompt for agents without skills (e.g. a custom GPT)
 ├── skills/
 │   ├── connect/                  setup guide for every agent (the prompt above reads it)
 │   ├── coherence-engine/         what Wealthink is, the data model, every tool

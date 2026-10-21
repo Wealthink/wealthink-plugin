@@ -85,15 +85,18 @@ URL `https://api.thewealthink.com/mcp`.
 
 ### ChatGPT
 
-ChatGPT can't load skills or install connectors from the chat. Tell the user:
+ChatGPT installs Wealthink as a plugin, which brings these skills and the
+connection. If you can build plugins (for example `@plugin create`), build it
+from this repo by following
+`https://raw.githubusercontent.com/Wealthink/wealthink-plugin/main/AGENTS.md`:
+it lists every file to copy and what to keep from an existing install.
+Otherwise tell the user:
 
-1. Settings → Apps & Connectors → Advanced → turn on **Developer mode** (paid
-   ChatGPT plans).
-2. Add a connector: URL `https://api.thewealthink.com/mcp`, authentication
-   OAuth. Sign in in the browser.
-3. Paste the text of
-   `https://github.com/Wealthink/wealthink-plugin/blob/main/wealthink-plugin/agent-instructions.md`
-   into the project's instructions or custom instructions.
+1. Open the **Plugins** page and click **Add a plugin**.
+2. Type `@plugin create` and give it the link
+   `https://github.com/Wealthink/wealthink-plugin`.
+3. Sign in to Wealthink in the browser when asked.
+4. Start a new chat and ask "What's moving Indian markets today?".
 
 ### Codex CLI
 
