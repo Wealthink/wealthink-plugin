@@ -20,8 +20,7 @@ tag (`.../tree/<ref>`), put that ref in place of `main` in every URL below.
 |---|---|
 | `plugin.json` | https://raw.githubusercontent.com/Wealthink/wealthink-plugin/main/wealthink-plugin/plugin.json |
 | `mcp.json` | https://raw.githubusercontent.com/Wealthink/wealthink-plugin/main/wealthink-plugin/mcp.json |
-| `assets/composer-icon.svg` | https://raw.githubusercontent.com/Wealthink/wealthink-plugin/main/wealthink-plugin/assets/composer-icon.svg |
-| `assets/logo.png` | https://raw.githubusercontent.com/Wealthink/wealthink-plugin/main/wealthink-plugin/assets/logo.png |
+| `assets/logo.svg` | https://raw.githubusercontent.com/Wealthink/wealthink-plugin/main/wealthink-plugin/assets/logo.svg |
 | `skills/coherence-engine/SKILL.md` | https://raw.githubusercontent.com/Wealthink/wealthink-plugin/main/wealthink-plugin/skills/coherence-engine/SKILL.md |
 | `skills/coherence-engine/references/data-model.md` | https://raw.githubusercontent.com/Wealthink/wealthink-plugin/main/wealthink-plugin/skills/coherence-engine/references/data-model.md |
 | `skills/connect/SKILL.md` | https://raw.githubusercontent.com/Wealthink/wealthink-plugin/main/wealthink-plugin/skills/connect/SKILL.md |
@@ -32,9 +31,8 @@ tag (`.../tree/<ref>`), put that ref in place of `main` in every URL below.
 <!-- plugin-files:end -->
 
 Copy the files byte for byte. Don't rewrite, summarise or merge the skills:
-each `SKILL.md` is loaded by its frontmatter `name` and `description`. The
-`assets/` files are the Wealthink logo, which `interface.logo` and
-`interface.composerIcon` in `plugin.json` point at.
+each `SKILL.md` is loaded by its frontmatter `name` and `description`. `assets/logo.svg` is the Wealthink logo, which `interface.logo` and
+`interface.composerIcon` in `plugin.json` both point at.
 
 ## The connection
 
