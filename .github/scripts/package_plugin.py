@@ -3,10 +3,11 @@
 
 Run:  python3 .github/scripts/package_plugin.py dist/wealthink-plugin.zip
 
-The zip holds exactly the files AGENTS.md lists (the manifest, the MCP config
-and the skills), at their paths relative to the plugin root. The Claude-only
-parts (.claude-plugin/, hooks/, commands/) are left out: ChatGPT's plugin
-creator rejects what it can't use.
+The zip holds exactly the files AGENTS.md lists (plugin.json, mcp.json, the
+logos in assets/ and the skills), at their paths relative to the plugin root.
+The Claude-only parts (.claude-plugin/, .mcp.json, hooks/, commands/) and the
+legacy .codex-plugin/ manifest are left out: ChatGPT's plugin creator rejects
+what it can't use.
 """
 import pathlib
 import re

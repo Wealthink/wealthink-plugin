@@ -6,7 +6,7 @@ to every client:
 | Client | What it installs | Where it reads it from |
 |---|---|---|
 | Claude Code, Claude.ai, Desktop, Cowork | `wealthink-plugin/` via `.claude-plugin/` | the `main` branch, through `.claude-plugin/marketplace.json` |
-| Codex | `wealthink-plugin/` via its root `plugin.json` | the `main` branch, through `.agents/plugins/marketplace.json` |
+| Codex | `wealthink-plugin/` via its root `plugin.json` (or `.codex-plugin/plugin.json` on older builds) | the `main` branch, through `.agents/plugins/marketplace.json` |
 | ChatGPT | `wealthink-plugin.zip` | the latest GitHub release |
 
 Merging to `main` ships to Claude and Codex users straight away. ChatGPT users
@@ -22,6 +22,8 @@ get a change only once a release is published.
 - **Bump every version copy together.** The version lives in
   `wealthink-plugin/.claude-plugin/plugin.json`,
   `wealthink-plugin/plugin.json`,
+  `wealthink-plugin/.codex-plugin/plugin.json` (CI also checks its
+  `interface` equals `plugin.json`'s `extensions.com.openai.interface`),
   `.claude-plugin/marketplace.json` and each skill's `metadata.version`. CI
   fails if any one differs.
 - **A new plugin file goes in the `AGENTS.md` file list,** with its raw URL.

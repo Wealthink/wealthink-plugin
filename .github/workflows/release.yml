@@ -35,7 +35,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install schema validator
-        run: pip install jsonschema
+        run: pip install jsonschema==4.23.0
 
       - name: Manifests parse and versions agree
         run: python3 .github/scripts/check_manifests.py

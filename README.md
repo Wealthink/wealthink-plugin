@@ -119,17 +119,24 @@ The [setup guide](./wealthink-plugin/skills/connect/SKILL.md) has the config for
 <details>
 <summary><b>ChatGPT</b></summary>
 
-1. Download [`wealthink-plugin.zip`](https://github.com/Wealthink/wealthink-plugin/releases/latest/download/wealthink-plugin.zip). In Safari, first untick
-   Settings → General → **Open "safe" files after downloading**, or you get a
-   folder instead of the zip.
-2. In ChatGPT, open **Plugins** → **Add a plugin**, attach the zip and send:
+1. **Add the server.** In ChatGPT, open **Plugins** → **+** → **Add custom MCP
+   server**. Name it `Wealthink`, set the URL to
+   `https://api.thewealthink.com/mcp` and authentication to **OAuth**, then
+   choose **Create as a plugin**.
+2. **Sign in** to Wealthink in the browser when ChatGPT asks.
+3. **Add the skills.** Download
+   [`wealthink-plugin.zip`](https://github.com/Wealthink/wealthink-plugin/releases/latest/download/wealthink-plugin.zip)
+   (in Safari, first untick Settings → General → **Open "safe" files after
+   downloading**, or you get a folder). Start a new chat, attach the zip and
+   send:
    ```text
-   @plugin create Install the attached zip as the Wealthink plugin exactly as packaged (if I already have a Wealthink plugin, update it in place, keep its .app.json unchanged, and take the new logo and branding), then have me sign in to Wealthink and confirm it works by telling me what's moving Indian markets today using Wealthink.
+   @plugin create Update my existing Wealthink plugin (the one created from my Wealthink custom MCP server connection) in place with the attached wealthink-plugin.zip: add all six skills from its skills/ folder and the logos from assets/, keep the plugin's .app.json exactly as it is, and do not add the zip's mcp.json. Don't create a new plugin. Then confirm it works: use what you remember about me (the companies, sectors or themes I follow, my holdings or my work) to pick what matters most to me in Indian markets, and show me today's Wealthink news on it, citing the story IDs. If you don't know enough about me, tell me what's moving Indian markets today instead.
    ```
-3. Sign in to Wealthink in the browser when asked.
 
-ChatGPT can't download the zip itself, so attach it. To update, download it
-again and repeat.
+ChatGPT connects to a server, with sign-in, only through a connection you add
+yourself (step 1), and that connection can't bring the skills with it, so the
+zip adds them (step 3). ChatGPT can't download the zip itself, so attach it.
+To update, download the zip again and repeat step 3.
 
 </details>
 
@@ -159,6 +166,7 @@ RELEASING.md                      how to change and release the plugin
 .github/workflows/release.yml     attaches wealthink-plugin.zip to every release
 wealthink-plugin/                 the plugin
 ├── plugin.json                   the ChatGPT / Codex manifest (OpenAI Agent Plugins format)
+├── .codex-plugin/plugin.json     the same manifest in the older Codex format, for Codex builds that need it
 ├── mcp.json                      the Wealthink MCP server, for ChatGPT / Codex
 ├── .mcp.json                     the Wealthink MCP server, for Claude
 ├── assets/                       the Wealthink logo

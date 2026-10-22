@@ -45,16 +45,22 @@ There is no API key. Never ask the user for an email, password or token.
 
 The package uses OpenAI's portable Agent Plugins format: `plugin.json` at the
 root (presentation under `extensions.com.openai.interface`) and `mcp.json` for
-the server. There is no `.codex-plugin/plugin.json`.
+the server.
 
-- **The user already has a Wealthink app or connector in ChatGPT:** keep it.
-  If the plugin being updated has an `.app.json`, keep that file unchanged
-  and set `extensions.com.openai.apps` to `"./.app.json"` in `plugin.json`.
-  Replacing it breaks the user's sign-in. The app already is the connection,
-  so leave `mcp.json` out rather than add a second server alongside it.
-- **They don't:** use `mcp.json` as shipped. The server supports OAuth
-  discovery and dynamic client registration, so the user signs in in the
-  browser when the plugin is installed or first used.
+In ChatGPT the user first adds Wealthink as a custom MCP server and chooses
+**Create as a plugin**, then signs in. That makes a plugin with an `.app.json`
+pointing at their connection. Your job is to add the skills to it:
+
+- **The user has that Wealthink plugin:** update it in place. Keep its
+  `.app.json` unchanged and set `extensions.com.openai.apps` to
+  `"./.app.json"` in `plugin.json`; replacing it breaks the user's sign-in.
+  Add the skills and `assets/`. Leave `mcp.json` out: the app already is the
+  connection, and a second server would show every tool twice.
+- **They don't:** in ChatGPT, a plugin with only `mcp.json` installs but
+  offers no sign-in in chat. Tell the user to add the custom MCP server first
+  (Plugins → **+** → **Add custom MCP server**, URL
+  `https://api.thewealthink.com/mcp`, OAuth, **Create as a plugin**), sign
+  in, then attach the zip again. In Codex, use `mcp.json` as shipped.
 
 ## Leave out
 
@@ -62,6 +68,8 @@ These are for Claude Code only and don't work in ChatGPT or Codex:
 
 - `.claude-plugin/`
 - `.mcp.json` (Claude's copy of the server config; `mcp.json` is the portable one)
+- `.codex-plugin/` (the same manifest in the older Codex format, for Codex
+  installs from this repo; `plugin.json` replaces it)
 - `hooks/`
 - `commands/`
 - `agent-instructions.md` (a system prompt for agents without skills; a
