@@ -12,7 +12,7 @@ compatibility: Any MCP-capable agent with remote (streamable HTTP) MCP and OAuth
 license: MIT
 metadata:
   author: wealthink
-  version: "0.5.0"
+  version: "0.5.1"
 allowed-tools: mcp__plugin_wealthink_mcp__get_pool_pulse mcp__plugin_wealthink_mcp__get_my_usage
 ---
 
@@ -85,23 +85,26 @@ URL `https://api.thewealthink.com/mcp`.
 
 ### ChatGPT
 
-ChatGPT installs Wealthink as a plugin, which brings these skills and the
-connection, from a zip attached to every Wealthink release. If you can build
-plugins (for example `@plugin create`), follow
-`https://raw.githubusercontent.com/Wealthink/wealthink-plugin/main/AGENTS.md`:
-it says where the zip is and what to keep from an existing install.
+Setup takes three steps. ChatGPT connects to a server, with sign-in, only
+through a connection the user adds (step 1), and that connection can't bring
+the skills, so a zip attached to every Wealthink release adds them (step 3).
+ChatGPT can't download the zip itself (its sandbox can't reach GitHub). If you
+are ChatGPT's plugin creator and the user attached `wealthink-plugin.zip`,
+follow `https://raw.githubusercontent.com/Wealthink/wealthink-plugin/main/AGENTS.md`.
 Otherwise tell the user:
 
-1. Open the **Plugins** page and click **Add a plugin**.
-2. Type `@plugin create`, paste the link
-   `https://github.com/Wealthink/wealthink-plugin/releases/latest/download/wealthink-plugin.zip`
-   and ask it to install that zip as the Wealthink plugin. If ChatGPT can't
-   fetch the link, download the zip and attach it instead.
-3. Sign in to Wealthink in the browser when asked.
-4. Start a new chat and ask "What's moving Indian markets today?".
+1. In ChatGPT, open **Plugins** → **+** → **Add custom MCP server**. Name it
+   `Wealthink`, set the URL to `https://api.thewealthink.com/mcp` and
+   authentication to **OAuth**, then choose **Create as a plugin**.
+2. Sign in to Wealthink in the browser when ChatGPT asks.
+3. Download `https://github.com/Wealthink/wealthink-plugin/releases/latest/download/wealthink-plugin.zip`
+   (in Safari, first untick Settings → General → **Open "safe" files after
+   downloading**, or Safari unzips it into a folder). Start a new chat, attach
+   the zip and send:
+   `@plugin create Update my existing Wealthink plugin (the one created from my Wealthink custom MCP server connection) in place with the attached wealthink-plugin.zip: add all six skills from its skills/ folder and the logos from assets/, keep the plugin's .app.json exactly as it is, and do not add the zip's mcp.json. Don't create a new plugin. Then confirm it works: use what you remember about me (the companies, sectors or themes I follow, my holdings or my work) to pick what matters most to me in Indian markets, and show me today's Wealthink news on it, citing the story IDs. If you don't know enough about me, tell me what's moving Indian markets today instead.`
 
-To update later, do the same with the same link: it always serves the newest
-release.
+To update later, download the zip again and repeat step 3: the link always
+serves the newest release.
 
 ### Codex CLI
 

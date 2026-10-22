@@ -19,6 +19,9 @@ jobs:
       - name: Hook tests
         run: python3 wealthink-plugin/hooks/tests/test_hooks.py
 
+      - name: Install schema validator
+        run: pip install jsonschema==4.23.0
+
       - name: Manifests parse and versions agree
         run: python3 .github/scripts/check_manifests.py
 

@@ -10,7 +10,7 @@ compatibility: Requires the Wealthink MCP server (https://api.thewealthink.com/m
 license: MIT
 metadata:
   author: wealthink
-  version: "0.5.0"
+  version: "0.5.1"
 allowed-tools: mcp__plugin_wealthink_mcp__list_pool_thesis_checks mcp__plugin_wealthink_mcp__get_pool_thesis_check
 ---
 

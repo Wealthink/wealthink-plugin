@@ -1,0 +1,46 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "wealthink",
+  "version": "0.5.1",
+  "description": "Understand Indian markets with Wealthink, a coherence engine that links recent Indian financial news into one map: what's moving markets today, how the stories behind a company, sector, macro driver or portfolio connect, why something happened and what followed, and what supports or challenges your view.",
+  "author": {
+    "name": "Wealthink",
+    "email": "support@thewealthink.com",
+    "url": "https://www.thewealthink.com/"
+  },
+  "homepage": "https://github.com/Wealthink/wealthink-plugin",
+  "repository": "https://github.com/Wealthink/wealthink-plugin",
+  "license": "MIT",
+  "keywords": [
+    "finance",
+    "market-news",
+    "india",
+    "equities",
+    "mcp"
+  ],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Wealthink for agents",
+        "shortDescription": "Indian market news, connected",
+        "longDescription": "Wealthink links recent Indian financial news into connected stories, tagged with the sectors, macro drivers and companies they move and the knock-on effects they carry. Ask what's moving markets today, what's going on with a company or sector, or whether the news backs your view, and get a cited answer.",
+        "developerName": "Wealthink",
+        "logo": "./assets/logo.png",
+        "logoDark": "./assets/logo-dark.png",
+        "composerIcon": "./assets/logo.png",
+        "composerIconDark": "./assets/logo-dark.png",
+        "brandColor": "#101418",
+        "category": "Finance",
+        "capabilities": [],
+        "defaultPrompt": [
+          "What's moving Indian markets today?",
+          "What's going on with HDFC Bank?",
+          "How is crude oil hitting other sectors?"
+        ],
+        "websiteURL": "https://www.thewealthink.com/",
+        "supportURL": "https://github.com/Wealthink/wealthink-plugin/issues",
+        "screenshots": []
+      }
+    }
+  }
+}
